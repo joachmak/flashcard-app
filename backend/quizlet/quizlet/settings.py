@@ -86,12 +86,12 @@ WSGI_APPLICATION = 'quizlet.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'quizlet',
-        'USER': 'postgres',
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': 'flashcard',
+        'USER': 'joachim',
         'PASSWORD': 'admin',
         'HOST': 'localhost',
-        'PORT': '5433',
+        'PORT': '',
     }
 }
 

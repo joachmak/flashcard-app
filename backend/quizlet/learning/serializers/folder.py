@@ -1,8 +1,8 @@
 from rest_framework.serializers import ModelSerializer, CharField, DateTimeField
-from learning.models import Set
+from learning.models import Folder
 
 
-class SetSerializer(ModelSerializer):
+class FolderSerializer(ModelSerializer):
     class Meta:
-        model = Set
+        model = Folder
         fields = '__all__'
