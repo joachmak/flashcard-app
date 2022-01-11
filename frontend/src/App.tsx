@@ -1,13 +1,16 @@
 import './App.css';
-import Navbar from "./components/navigation/Navbar";
 import Sets from './components/sets/Sets';
+import { Routes, Route, Link } from "react-router-dom";
+import Login from './components/login/Login';
 
 function App() {
 
     return (
     <div className="App">
-        <Navbar />
-        <Sets />
+        <Routes>
+          <Route path="/" element={<Login />} />
+          <Route path="/sets" element={<Sets />} />
+        </Routes>
     </div>
   );
 }

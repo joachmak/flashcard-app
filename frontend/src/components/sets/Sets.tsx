@@ -1,7 +1,7 @@
 import { FileTextOutlined } from '@ant-design/icons';
 import { Row, Col, Collapse, Card, Input } from 'antd';
-import { setgid } from 'process';
 import { ReactNode, useEffect, useState } from 'react';
+import Navbar from '../navigation/Navbar';
 
 const { Search } = Input;
 const { Panel } = Collapse;
@@ -45,12 +45,7 @@ function CardSet(props: setProps) {
 function Folder(props: folderProps) {
     const [sets, setSets] = useState<setProps[]>([])
     useEffect(() => {
-        axios.get("http://127.0.0.1:8000/learning/sets/", {
-            auth: {
-                username: "joachim",
-                password: "Newfoxnewme2417"
-            }
-        }).then((res: any) => {
+        axios.get("http://127.0.0.1:8000/learning/sets/").then((res: any) => {
             setSets(res.data)
         })
     }, [])
@@ -61,13 +56,16 @@ function Folder(props: folderProps) {
         childrenCount = 1
     }
     return (
-        <Collapse style={{marginBottom: 5}}>
-            <Panel header={"Folder name (" + childrenCount + " sets)"} key="1">
-                <Row gutter={[5, 5]}>
-                    {sets.map(set => <CardSet title={set.title} description={set.description} created_date={set.created_date} last_updated_date={set.last_updated_date}/>)}
-                </Row>
-            </Panel>
-        </Collapse>
+        <>
+            <Navbar />
+            <Collapse style={{marginBottom: 5}}>
+                <Panel header={"Folder name (" + childrenCount + " sets)"} key="1">
+                    <Row gutter={[5, 5]}>
+                        {sets.map(set => <CardSet title={set.title} description={set.description} created_date={set.created_date} last_updated_date={set.last_updated_date}/>)}
+                    </Row>
+                </Panel>
+            </Collapse>
+        </>
     )
 }
 
