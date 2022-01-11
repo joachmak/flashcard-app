@@ -1,11 +1,10 @@
 import { FileTextOutlined } from '@ant-design/icons';
 import { Row, Col, Collapse, Card, Input } from 'antd';
-import { ReactNode, useEffect, useState } from 'react';
+import { ReactNode, useState } from 'react';
 import Navbar from '../navigation/Navbar';
 
 const { Search } = Input;
 const { Panel } = Collapse;
-const axios = require("axios")
 
 interface folderProps {
     name: string;
@@ -44,11 +43,6 @@ function CardSet(props: setProps) {
 
 function Folder(props: folderProps) {
     const [sets, setSets] = useState<setProps[]>([])
-    useEffect(() => {
-        axios.get("http://127.0.0.1:8000/learning/sets/").then((res: any) => {
-            setSets(res.data)
-        })
-    }, [])
     let childrenCount = 0
     if (Array.isArray(props.children)) {
         childrenCount = props.children.length   

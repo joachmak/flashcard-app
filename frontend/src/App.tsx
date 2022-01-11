@@ -1,13 +1,16 @@
 import './App.css';
 import Sets from './components/sets/Sets';
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, useNavigate } from "react-router-dom";
 import Login from './components/login/Login';
-import { createContext, useEffect, useState } from 'react';
+import { createContext, Dispatch, SetStateAction, useContext, useEffect, useState } from 'react';
 import { UserAuth } from './utils/types';
+import { reauthenticate } from './utils/authentication';
 
 
 
-const UserContext = createContext<UserAuth>({})
+const userValue: UserAuth = {}
+const setUserValue: Dispatch<SetStateAction<UserAuth>> = () => {}
+const UserContext = createContext({user: userValue, setUser: setUserValue})
 
 function App() {
   const [user, setUser] = useState<UserAuth>({})
@@ -17,14 +20,39 @@ function App() {
 
   return (
     <div className="App">
-      <UserContext.Provider value={user}>
+      <UserContext.Provider value={{user: user, setUser: setUser}}>
           <Routes>
-              <Route path="/" element={<Login setUser={setUser} />} />
-              <Route path="/sets" element={<Sets />} />
+              <Route path="/" element={<Login />} />
+              <Route path="/sets" element={<AuthenticatedRoute><Sets /></AuthenticatedRoute>} />
           </Routes>
       </UserContext.Provider>
     </div>
   );
 }
 
-export default App;
+function AuthenticatedRoute({ children } : {children: any}) {
+  let navigate = useNavigate();
+  const userContext = useContext(UserContext);
+  const user = userContext.user;
+  const [loading, setLoading] = useState(true);
+  if (!user.username || !user.access_token || !user.refresh_token) {
+    navigate("/");
+  }
+  useEffect(() => {
+    reauthenticate(user.refresh_token!).then(result => {
+      user.access_token = result.access;
+      userContext.setUser(user);
+    }).catch(e => {
+      console.log(e);
+      navigate("/");
+    }).finally(() => {
+      setLoading(false)
+    })
+  }, [navigate, user, userContext])
+  if (loading) {
+    return (<></>)
+  }
+  return children;
+}
+
+export { App, UserContext };

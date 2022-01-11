@@ -1,11 +1,12 @@
 import { Card, Input, Button, message } from "antd"
 import { UserOutlined, LockOutlined } from '@ant-design/icons';
-import { Dispatch, SetStateAction, useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { authenticate } from "../../utils/authentication";
 import { UserAuth } from "../../utils/types";
 import { useNavigate } from "react-router-dom";
+import { UserContext } from "../../App";
 
-export default function Login(props: {setUser: Dispatch<SetStateAction<UserAuth>>}) {
+export default function Login() {
     let styles = {
         container: {
             width: "100vw",
@@ -44,6 +45,7 @@ export default function Login(props: {setUser: Dispatch<SetStateAction<UserAuth>
     }, [words.length]);
 
     // Authentication
+    const userContext = useContext(UserContext);
     let navigate = useNavigate();
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
@@ -60,7 +62,7 @@ export default function Login(props: {setUser: Dispatch<SetStateAction<UserAuth>
             await delay(1000);
             const result = await authenticate(username, password)
             const user: UserAuth = {username: username, access_token: result.access, refresh_token: result.refresh}
-            props.setUser(user)
+            userContext.setUser(user)
             setError(false);
             navigate("/sets");
         } catch (e) {
