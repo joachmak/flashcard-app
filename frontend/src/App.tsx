@@ -48,6 +48,7 @@ function AuthenticatedRoute({ children } : {children: any}) {
     }).finally(() => {
       setLoading(false)
     })
+    return () => { setLoading(false) };
   }, [navigate, user, userContext])
   if (loading) {
     return (<></>)
