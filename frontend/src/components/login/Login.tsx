@@ -25,7 +25,7 @@ export default function Login() {
             width: "100%",
         },
         btn: {
-            width: "80%",
+            width: "100%",
             marginBottom: 5,
             margin: "5px auto",
             display: "block",
@@ -33,16 +33,54 @@ export default function Login() {
         title: {
             lineHeight: 0.2,
         },
+        line: {
+            animationName: "blink",
+            animationDuration: "1.2s",
+            animationIterationCount: "infinite",
+        }
     }
     // Cosmetic
-    let words = ["better", "smarter", "prettier", "cooler", "faster", "more secure", "more fancy"]
-    const [index, setIndex] = useState(0);
+    let words = ["fancier", "smarter", "prettier", "cooler", "faster", "safer", "better"]
+    const [index, setIndex] = useState(0); // Word index (for words-list)
+    const [word, setWord] = useState(words[(words.length - 1)]); // Current text being displayed
+    const [tick, setTick] = useState(0); // switches between 0 and 1 to trigger useEffect
+    const [animationPhase, setAnimationPhase] = useState(2); // 0: delete old, 1: append new, 2: static
+    const [timer, setTimer] = useState(0); // To time animation phases
     useEffect(() => {
-        const interval = setInterval(() => {
-        setIndex(index => (index + 1 >= words.length ? 0 : index + 1));
-        }, 1000);
-        return () => clearInterval(interval);
-    }, [words.length]);
+        let newWord = words[index];
+        if (animationPhase === 0) { // Delete
+            if (word.length > 0) {
+                setWord(word.slice(0, word.length - 1));
+                return;
+            }
+            setAnimationPhase(1);
+        }
+        if (animationPhase === 1) { // Append
+            if (word !== newWord) {
+                setWord(word + newWord[timer]);
+                setTimer(timer + 1);
+                return;
+            }
+            setTimer(0);
+            setAnimationPhase(2);
+        }
+        if (animationPhase === 2) { // Wait while displaying
+            if (timer < 10) {
+                setTimer(timer + 1);
+                return;
+            }
+            setTimer(0);
+            setIndex(index >= words.length - 1 ? 0 : index + 1);
+            setAnimationPhase(0);
+            setTick(1 - tick);
+        }
+    }, [tick]) // eslint-disable-line
+    useEffect(() => {
+        const id = setInterval(() => setTick((oldCount) => 1 - oldCount), 100);
+        return () => {
+            clearInterval(id);
+        };
+    }, []);
 
     // Authentication
     const userContext = useContext(UserContext);
@@ -81,13 +119,13 @@ export default function Login() {
             <Card style={styles.card}>
                 <div style={{textAlign: "center", width: 500}}>
                     <h1 style={styles.title}>Welcome...</h1>
-                    <h5>To the flashcard-app that is (most likely not) <span style={{color: "#1890FF"}}>{words[index]}</span> than other flashcard-apps</h5>
+                    <h5>To the flashcard-app that is (most likely not) <span style={{color: "#1890FF"}}>{word}</span><span style={styles.line}>|</span> than other flashcard-apps</h5>
                 </div>
                 <Input style={{...styles.input, borderColor: error ? "red" : ""}} placeholder="Username" value={username} onChange={e => setUsername(e.target.value)} prefix={<UserOutlined />} />
                 <Input.Password style={{...styles.input, borderColor: error ? "red" : ""}} placeholder="Password" value={password} onChange={e => setPassword(e.target.value)} prefix={<LockOutlined />} />
                 <Button loading={loading} style={styles.btn} type="primary" onClick={() => handleSubmit()}>Log in</Button>
                 <Button loading={loading} style={styles.btn} type="primary" ghost>Register</Button>
-            </Card>,
+            </Card>
             </div>
         </>
     )
