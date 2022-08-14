@@ -15,7 +15,8 @@ export default function CardSet(props: ISet) {
 				title={props.title}
 				extra={
 					<>
-						<FileTextOutlined /> {Math.floor(Math.random() * 100)} cards
+						<FileTextOutlined /> {props.cards ? props.cards.length : 0} card
+						{props.cards?.length !== 1 && "s"}
 					</>
 				}
 			>

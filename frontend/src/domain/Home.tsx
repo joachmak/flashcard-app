@@ -39,6 +39,7 @@ export default function Home() {
 							description={set.description}
 							created_date={set.created_date}
 							last_updated_date={set.last_updated_date}
+							cards={set.cards}
 						/>
 					))}
 			</div>

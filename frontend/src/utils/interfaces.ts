@@ -14,6 +14,7 @@ export interface ISet {
 	description: string
 	created_date: Date
 	last_updated_date: Date
+	cards?: ICard[]
 }
 
 export interface ICard {

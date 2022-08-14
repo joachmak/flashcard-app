@@ -5,7 +5,7 @@ from learning.models.set import Set
 class Card(models.Model):
     term = models.TextField()
     definition = models.TextField()
-    set = models.ForeignKey(Set, models.CASCADE)
+    set = models.ForeignKey(Set, models.CASCADE, related_name="cards")
     score = models.SmallIntegerField()
     last_practiced = models.DateTimeField(null=True, blank=True)
 
