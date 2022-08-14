@@ -1,4 +1,4 @@
-from rest_framework.serializers import ModelSerializer, CharField, DateTimeField
+from rest_framework.serializers import ModelSerializer
 from learning.models import Set
 
 
