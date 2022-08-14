@@ -4,11 +4,19 @@ import { Content } from "antd/lib/layout/layout"
 import Title from "antd/lib/typography/Title"
 import { Dispatch, SetStateAction, useState } from "react"
 import { createUseStyles } from "react-jss"
-import { DeleteOutlined, PlusOutlined } from "@ant-design/icons"
+import {
+	DeleteOutlined,
+	PlusOutlined,
+	SaveOutlined,
+	DownloadOutlined,
+	UploadOutlined,
+} from "@ant-design/icons"
 import { ICard } from "../utils/interfaces"
-import { Button, notification, Tooltip } from "antd"
+import { Button, notification, Tooltip, message, Upload } from "antd"
 import { useNavigate } from "react-router-dom"
 import { createManyCards, createSet } from "../utils/fetch"
+import type { UploadProps } from "antd"
+import { RcFile } from "antd/lib/upload"
 
 let useStyles = createUseStyles({
 	content: {
@@ -126,6 +134,19 @@ export default function AddSet() {
 	const navigate = useNavigate()
 	const [isLoading, setIsLoading] = useState(false)
 
+	const uploadProps: UploadProps = {
+		name: "file",
+		accept: ".json",
+		showUploadList: false,
+		beforeUpload(file: RcFile) {
+			file.text().then((res) => {
+				// add file content to end of set
+				setCards(cards.concat(JSON.parse(res)))
+			})
+			return false // prevent POST request
+		},
+	}
+
 	const addCard = () => {
 		setCards((prevState) => [...prevState, { term: "", definition: "" }])
 	}
@@ -143,6 +164,19 @@ export default function AddSet() {
 			duration: 5,
 		})
 	}
+	/**
+	 * Download JSON backup of non-empty cards contained within this set
+	 */
+	const downloadJson = () => {
+		const nonEmptyCards = cards.filter((card) => card.definition !== "" || card.term !== "")
+		const text = JSON.stringify(nonEmptyCards)
+		let element = document.createElement("a")
+		element.setAttribute("href", "data:text/plain;charset=utf-8, " + encodeURIComponent(text))
+		element.setAttribute("download", "setBackup.json")
+		document.body.appendChild(element)
+		element.click()
+		document.body.removeChild(element)
+	}
 
 	const createSetWithCards = () => {
 		if (setName === "") {
@@ -157,6 +191,7 @@ export default function AddSet() {
 		createSet(setName, setDescription)
 			.then((res) => res.json())
 			.then((res) => {
+				// only include non-empty cards
 				const nonEmptyCards = cards.filter((card) => card.definition !== "" && card.term !== "")
 				nonEmptyCards.map((card) => {
 					card["score"] = 0
@@ -172,6 +207,7 @@ export default function AddSet() {
 			.catch((err) => {
 				console.error(err)
 				openErrNotification("Something went wrong. Try saving again and start praying.")
+				setIsLoading(false)
 			})
 	}
 
@@ -212,9 +248,28 @@ export default function AddSet() {
 						/>
 					</Tooltip>
 				</div>
-				<Button onClick={createSetWithCards} loading={isLoading} type="primary">
+				<Button
+					icon={<SaveOutlined />}
+					onClick={createSetWithCards}
+					loading={isLoading}
+					type="primary"
+				>
 					Save set
 				</Button>
+				<Button
+					icon={<DownloadOutlined />}
+					onClick={downloadJson}
+					loading={isLoading}
+					type="ghost"
+					style={{ marginLeft: 10 }}
+				>
+					Download cards
+				</Button>
+				<Upload {...uploadProps}>
+					<Button style={{ marginLeft: 10 }} icon={<UploadOutlined />}>
+						Upload cards
+					</Button>
+				</Upload>
 			</Content>
 		</div>
 	)

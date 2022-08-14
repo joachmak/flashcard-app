@@ -1,7 +1,9 @@
+import { Typography } from "antd"
 import Search from "antd/lib/input/Search"
 import Title from "antd/lib/typography/Title"
 import { useEffect, useState } from "react"
 import { createUseStyles } from "react-jss"
+import { Link } from "react-router-dom"
 import CardSet from "../components/CardSet"
 import { getSets } from "../utils/fetch"
 import { ISet } from "../utils/interfaces"
@@ -42,6 +44,11 @@ export default function Home() {
 							cards={set.cards}
 						/>
 					))}
+				{sets && sets.length === 0 && (
+					<Typography>
+						There are no sets. <Link to={"/add_set"}>Create a new set</Link>
+					</Typography>
+				)}
 			</div>
 		</div>
 	)
