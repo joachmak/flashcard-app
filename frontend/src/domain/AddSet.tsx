@@ -12,7 +12,7 @@ import {
 	UploadOutlined,
 } from "@ant-design/icons"
 import { ICard } from "../utils/interfaces"
-import { Button, notification, Tooltip, message, Upload } from "antd"
+import { Button, notification, Tooltip, Upload } from "antd"
 import { useNavigate } from "react-router-dom"
 import { createManyCards, createSet } from "../utils/fetch"
 import type { UploadProps } from "antd"

@@ -1,10 +1,11 @@
 import { Typography } from "antd"
 import Search from "antd/lib/input/Search"
 import Title from "antd/lib/typography/Title"
-import { useEffect, useState } from "react"
+import { useContext, useEffect, useState } from "react"
 import { createUseStyles } from "react-jss"
-import { Link } from "react-router-dom"
-import CardSet from "../components/CardSet"
+import { Link, useNavigate } from "react-router-dom"
+import { AppContext } from "../App"
+import SetCard from "../components/SetCard"
 import { getSets } from "../utils/fetch"
 import { ISet } from "../utils/interfaces"
 
@@ -18,6 +19,8 @@ const useStyles = createUseStyles({
 })
 
 export default function Home() {
+	const context = useContext(AppContext)
+	const navigate = useNavigate()
 	const [sets, setSets] = useState<ISet[] | undefined>(undefined)
 	const classes = useStyles()
 	useEffect(() => {
@@ -33,15 +36,15 @@ export default function Home() {
 			<Title level={3}>Sets</Title>
 			<div className={classes.setContainer}>
 				{sets &&
+					context &&
 					sets.map((set) => (
-						<CardSet
-							id={set.id}
+						<SetCard
 							key={set.id}
-							title={set.title}
-							description={set.description}
-							created_date={set.created_date}
-							last_updated_date={set.last_updated_date}
-							cards={set.cards}
+							set={set}
+							onClick={() => {
+								context.setSet(set || [])
+								navigate("/view_set")
+							}}
 						/>
 					))}
 				{sets && sets.length === 0 && (

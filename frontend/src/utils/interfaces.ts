@@ -1,4 +1,4 @@
-import { ReactNode } from "react"
+import { Dispatch, ReactNode, SetStateAction } from "react"
 
 export interface IFolder {
 	id?: number
@@ -30,4 +30,9 @@ export interface UserAuth {
 	username?: string
 	access_token?: string
 	refresh_token?: string
+}
+
+export interface IAppContext {
+	set: ISet | undefined
+	setSet: Dispatch<SetStateAction<ISet | undefined>>
 }

@@ -3,7 +3,12 @@ import { Button, Card, Col, Typography } from "antd"
 import { deleteSet } from "../utils/fetch"
 import { ISet } from "../utils/interfaces"
 
-export default function CardSet(props: ISet) {
+interface Props {
+	set: ISet
+	onClick: () => void
+}
+
+export default function SetCard(props: Props) {
 	let styles = {
 		date: {
 			margin: 0,
@@ -12,24 +17,29 @@ export default function CardSet(props: ISet) {
 	return (
 		<Col span={6}>
 			<Card
-				title={props.title}
+				title={
+					<Button style={{ paddingLeft: 0 }} type="link" onClick={props.onClick}>
+						{props.set.title}
+					</Button>
+				}
 				extra={
 					<>
-						<FileTextOutlined /> {props.cards ? props.cards.length : 0} card
-						{props.cards?.length !== 1 && "s"}
+						<FileTextOutlined /> {props.set.cards ? props.set.cards.length : 0} card
+						{props.set.cards?.length !== 1 && "s"}
 					</>
 				}
+				onClick={props.onClick}
 			>
 				<Typography>
-					<i>"{props.description}"</i>
+					<i>"{props.set.description}"</i>
 				</Typography>
 				<div>
 					<Typography style={styles.date}>
-						<b>Date added:</b> {new Date(props.created_date).toLocaleDateString("no-NB")}
+						<b>Date added:</b> {new Date(props.set.created_date).toLocaleDateString("no-NB")}
 					</Typography>
 					<Typography style={styles.date}>
 						<b>Last edited:</b>{" "}
-						{new Date(props.last_updated_date).toLocaleDateString("no-NB", {
+						{new Date(props.set.last_updated_date).toLocaleDateString("no-NB", {
 							year: "numeric",
 							month: "numeric",
 							day: "numeric",
@@ -39,8 +49,8 @@ export default function CardSet(props: ISet) {
 					</Typography>
 					<Button
 						onClick={() => {
-							if (props.id) {
-								deleteSet(props.id).then(() => window.location.reload())
+							if (props.set.id) {
+								deleteSet(props.set.id).then(() => window.location.reload())
 							}
 						}}
 						danger
