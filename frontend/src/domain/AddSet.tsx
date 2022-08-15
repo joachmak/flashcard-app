@@ -17,6 +17,8 @@ import { useNavigate } from "react-router-dom"
 import { createManyCards, createSet } from "../utils/fetch"
 import type { UploadProps } from "antd"
 import { RcFile } from "antd/lib/upload"
+import { LATEX_DELIMITER } from "../utils/constants"
+import { parseLatex } from "../utils/utils"
 
 let useStyles = createUseStyles({
 	content: {
@@ -50,8 +52,17 @@ let useStyles = createUseStyles({
 		display: "flex",
 		marginTop: 10,
 	},
+	cardActionBar: {
+		display: "flex",
+		gap: 10,
+		marginBottom: 5,
+		alignItems: "center",
+	},
 	icon: {
 		cursor: "pointer",
+	},
+	textAreaContainer: {
+		width: "100%",
 	},
 	textArea: {
 		border: "1px solid rgba(0,0,0,0.3)",
@@ -80,34 +91,80 @@ function CardInputGroup(props: CardInputGroupProps) {
 		props.cards[props.idx].definition = val
 		props.setCards([...props.cards])
 	}
+	const [preview, setPreview] = useState(false)
 	return (
 		<div className={classes.cardInputGroupContainer}>
 			<div className={classes.termDefinitionContainer}>
-				<TextArea
-					onChange={(e) => setTerm(e.target.value)}
-					value={props.cards[props.idx].term}
-					className={classes.textArea}
-					placeholder="Term..."
-					autoSize={{ minRows: 2, maxRows: 6 }}
-				/>
-				<TextArea
-					onChange={(e) => setDefinition(e.target.value)}
-					value={props.cards[props.idx].definition}
-					className={classes.textArea}
-					placeholder="Definition..."
-					autoSize={{ minRows: 2, maxRows: 6 }}
-				/>
-			</div>
-			<div className={classes.actionBar}>
-				<Tooltip placement="right" title="Delete card">
-					<Button
-						danger
-						type="text"
-						shape="circle"
-						icon={<DeleteOutlined />}
-						onClick={() => props.deleteFunc(props.idx)}
-					/>
-				</Tooltip>
+				<div className={classes.textAreaContainer}>
+					<div className={classes.cardActionBar}>
+						<Button
+							onClick={() =>
+								setTerm(props.cards[props.idx].term + LATEX_DELIMITER + LATEX_DELIMITER)
+							}
+							type="ghost"
+						>
+							TeX
+						</Button>
+						<Button onClick={() => setPreview(!preview)} type="ghost">
+							Toggle preview
+						</Button>
+						<Tooltip placement="right" title="Delete card">
+							<Button
+								danger
+								type="text"
+								shape="circle"
+								icon={<DeleteOutlined />}
+								onClick={() => props.deleteFunc(props.idx)}
+							/>
+						</Tooltip>
+					</div>
+					{preview ? (
+						props.cards[props.idx].term.length > 0 ? (
+							parseLatex(props.cards[props.idx].term)
+						) : (
+							"No text. Toggle preview to start editing."
+						)
+					) : (
+						<TextArea
+							onChange={(e) => setTerm(e.target.value)}
+							value={props.cards[props.idx].term}
+							className={classes.textArea}
+							placeholder="Term..."
+							autoSize={{ minRows: 2, maxRows: 6 }}
+						/>
+					)}
+				</div>
+				<div className={classes.textAreaContainer}>
+					<div className={classes.cardActionBar}>
+						<Tooltip placement="right" title="LaTeX formatting">
+							<Button
+								onClick={() =>
+									setDefinition(
+										props.cards[props.idx].definition + LATEX_DELIMITER + LATEX_DELIMITER
+									)
+								}
+								type="ghost"
+							>
+								TeX
+							</Button>
+						</Tooltip>
+					</div>
+					{preview ? (
+						props.cards[props.idx].definition.length > 0 ? (
+							parseLatex(props.cards[props.idx].definition)
+						) : (
+							"No text. Toggle preview to start editing."
+						)
+					) : (
+						<TextArea
+							onChange={(e) => setDefinition(e.target.value)}
+							value={props.cards[props.idx].definition}
+							className={classes.textArea}
+							placeholder="Definition..."
+							autoSize={{ minRows: 2, maxRows: 6 }}
+						/>
+					)}
+				</div>
 			</div>
 		</div>
 	)

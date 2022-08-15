@@ -27,7 +27,6 @@ export default function Home() {
 			.then((res) => setSets(res))
 			.catch((err) => console.log(err))
 	}, [])
-
 	return (
 		<div style={{ padding: 5 }}>
 			<Title level={3}>Sets</Title>

@@ -28,7 +28,6 @@ export default function SetCard(props: Props) {
 						{props.set.cards?.length !== 1 && "s"}
 					</>
 				}
-				onClick={props.onClick}
 			>
 				<Typography>
 					<i>"{props.set.description}"</i>

@@ -39,7 +39,6 @@ export async function createSet(title: string, description: string) {
 
 // CARDS
 export async function createManyCards(cards: ICard[]) {
-	console.log(JSON.stringify(cards))
 	return await fetch(process.env.REACT_APP_API_URL + "/learning/cards/", {
 		method: "POST",
 		headers: {

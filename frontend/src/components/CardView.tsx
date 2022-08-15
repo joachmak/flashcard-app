@@ -1,6 +1,7 @@
 import { Card } from "antd"
 import { createUseStyles } from "react-jss"
 import { ICard } from "../utils/interfaces"
+import { parseLatex } from "../utils/utils"
 
 const useStyles = createUseStyles({
 	container: {
@@ -23,7 +24,7 @@ export default function CardView(props: { card: ICard }) {
 		<div>
 			<div className={classes.container}>
 				<Card className={classes.card}>
-					{props.card.term}
+					{parseLatex(props.card.term)}
 					<br />
 					<i className={classes.infotext}>Strength score: {props.card.score}</i>
 					<br />
@@ -34,7 +35,7 @@ export default function CardView(props: { card: ICard }) {
 							: "Never"}
 					</i>
 				</Card>
-				<Card className={classes.card}>{props.card.definition}</Card>
+				<Card className={classes.card}>{parseLatex(props.card.definition)}</Card>
 			</div>
 		</div>
 	)

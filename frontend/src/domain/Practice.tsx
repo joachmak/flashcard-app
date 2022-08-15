@@ -6,7 +6,7 @@ import { useNavigate } from "react-router-dom"
 import { AppContext } from "../App"
 import { patchCard } from "../utils/fetch"
 import { ICard } from "../utils/interfaces"
-import { decrementScore, incrementScore } from "../utils/utils"
+import { decrementScore, incrementScore, parseLatex } from "../utils/utils"
 
 const useStyles = createUseStyles({
 	container: {
@@ -96,7 +96,9 @@ export default function Practice() {
 			{cards?.length > 0 && (
 				<>
 					<Card className={classes.card} onClick={() => setIsFlipped(!isFlipped)}>
-						{cards?.length > 0 && isFlipped ? cards[idx].definition : cards[idx].term}
+						{cards?.length > 0 && isFlipped
+							? parseLatex(cards[idx].definition)
+							: parseLatex(cards[idx].term)}
 						{isFlipped && context && context.set && (
 							<div className={classes.buttonContainer}>
 								<Button
