@@ -1,5 +1,7 @@
 from django.shortcuts import get_object_or_404
 from rest_framework import mixins, status, viewsets
+from rest_framework.decorators import action
+
 from learning.models import Card
 from learning.serializers.card import CardSerializer
 from rest_framework.response import Response
@@ -20,7 +22,7 @@ class CardViewset(mixins.ListModelMixin, mixins.CreateModelMixin, mixins.Destroy
         serializer = CardSerializer(data=request.data, many=isinstance(request.data, list))
         if serializer.is_valid(raise_exception=True):
             serializer.save()
-        return Response(status=status.HTTP_200_OK)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
     def delete(self, _, pk):
         obj = get_object_or_404(Card, pk=pk)

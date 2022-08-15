@@ -10,17 +10,32 @@ const useStyles = createUseStyles({
 	},
 	card: {
 		flex: 1,
-		marginBottom: 20,
-		boxShadow: "0 2px 2px rgba(0,0,0,0.15)",
+		marginBottom: 30,
+	},
+	infotext: {
+		color: "rgba(0,0,0,0.5)",
 	},
 })
 
 export default function CardView(props: { card: ICard }) {
 	const classes = useStyles()
 	return (
-		<div className={classes.container}>
-			<Card className={classes.card}>{props.card.term}</Card>
-			<Card className={classes.card}>{props.card.definition}</Card>
+		<div>
+			<div className={classes.container}>
+				<Card className={classes.card}>
+					{props.card.term}
+					<br />
+					<i className={classes.infotext}>Strength score: {props.card.score}</i>
+					<br />
+					<i className={classes.infotext}>
+						Last practiced:{" "}
+						{props.card.last_practiced
+							? new Date(props.card.last_practiced).toLocaleString()
+							: "Never"}
+					</i>
+				</Card>
+				<Card className={classes.card}>{props.card.definition}</Card>
+			</div>
 		</div>
 	)
 }

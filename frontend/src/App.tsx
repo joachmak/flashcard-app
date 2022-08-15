@@ -5,7 +5,8 @@ import AddSet from "./domain/AddSet"
 import Navbar from "./components/Navbar"
 import { createContext, useState } from "react"
 import { IAppContext, ISet } from "./utils/interfaces"
-import ViewSet from "./domain/ViewSet"
+import CardOverview from "./domain/CardOverview"
+import Practice from "./domain/Practice"
 
 export const AppContext = createContext<IAppContext | null>({
 	set: undefined,
@@ -22,7 +23,8 @@ function App() {
 				<Routes>
 					<Route path="/" element={<Home />} />
 					<Route path="/add_set" element={<AddSet />} />
-					<Route path="/view_set" element={<ViewSet />} />
+					<Route path="/view_set" element={<CardOverview />} />
+					<Route path="/practice" element={<Practice />} />
 				</Routes>
 			</AppContext.Provider>
 		</div>

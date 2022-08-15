@@ -6,7 +6,6 @@ const HEADERS = {
 }
 
 // SETS
-
 export async function deleteSet(id: number) {
 	return await fetch(process.env.REACT_APP_API_URL + "/learning/sets/" + id, {
 		method: "DELETE",
@@ -14,13 +13,11 @@ export async function deleteSet(id: number) {
 	})
 }
 
-export async function getSets() {
-	const res = await fetch(process.env.REACT_APP_API_URL + "/learning/sets", {
+export async function getSets(): Promise<ISet[]> {
+	return fetch(process.env.REACT_APP_API_URL + "/learning/sets", {
 		method: "GET",
 		headers: HEADERS,
-	})
-	const actualRes = await res.json()
-	return actualRes
+	}).then((res) => res.json())
 }
 
 export async function createSet(title: string, description: string) {
@@ -50,5 +47,16 @@ export async function createManyCards(cards: ICard[]) {
 			"Content-Type": "application/json",
 		},
 		body: JSON.stringify(cards),
+	})
+}
+
+export async function patchCard(cardId: number, newData: Partial<ICard>) {
+	return await fetch(process.env.REACT_APP_API_URL + "/learning/cards/" + cardId + "/", {
+		method: "PATCH",
+		headers: {
+			Accept: "application/json",
+			"Content-Type": "application/json",
+		},
+		body: JSON.stringify(newData),
 	})
 }

@@ -23,7 +23,7 @@ export interface ICard {
 	definition: string
 	score?: number
 	set?: number
-	lastPracticed?: Date
+	last_practiced?: Date
 }
 
 export interface UserAuth {

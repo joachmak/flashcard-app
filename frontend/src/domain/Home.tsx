@@ -1,5 +1,4 @@
 import { Typography } from "antd"
-import Search from "antd/lib/input/Search"
 import Title from "antd/lib/typography/Title"
 import { useContext, useEffect, useState } from "react"
 import { createUseStyles } from "react-jss"
@@ -21,7 +20,7 @@ const useStyles = createUseStyles({
 export default function Home() {
 	const context = useContext(AppContext)
 	const navigate = useNavigate()
-	const [sets, setSets] = useState<ISet[] | undefined>(undefined)
+	const [sets, setSets] = useState<ISet[]>()
 	const classes = useStyles()
 	useEffect(() => {
 		getSets()
@@ -31,8 +30,6 @@ export default function Home() {
 
 	return (
 		<div style={{ padding: 5 }}>
-			<Title level={2}>Set and folder overview</Title>
-			<Search placeholder="Search sets/folders" style={{ width: 250, marginBottom: 5 }} />
 			<Title level={3}>Sets</Title>
 			<div className={classes.setContainer}>
 				{sets &&
@@ -47,7 +44,7 @@ export default function Home() {
 							}}
 						/>
 					))}
-				{sets && sets.length === 0 && (
+				{sets?.length === 0 && (
 					<Typography>
 						There are no sets. <Link to={"/add_set"}>Create a new set</Link>
 					</Typography>

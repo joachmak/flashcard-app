@@ -56,6 +56,7 @@ export default function SetCard(props: Props) {
 						danger
 						icon={<DeleteOutlined />}
 						type="text"
+						style={{ transform: "translateX(-8px)" }}
 					/>
 				</div>
 			</Card>
