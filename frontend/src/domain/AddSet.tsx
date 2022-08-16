@@ -2,7 +2,7 @@ import Input from "antd/lib/input"
 import TextArea from "antd/lib/input/TextArea"
 import { Content } from "antd/lib/layout/layout"
 import Title from "antd/lib/typography/Title"
-import { Dispatch, SetStateAction, useState } from "react"
+import { Dispatch, KeyboardEvent, SetStateAction, useEffect, useState } from "react"
 import { createUseStyles } from "react-jss"
 import {
 	DeleteOutlined,
@@ -92,12 +92,24 @@ function CardInputGroup(props: CardInputGroupProps) {
 		props.setCards([...props.cards])
 	}
 	const [preview, setPreview] = useState(false)
+	const [cardLength, setCardLength] = useState<number>()
+	useEffect(() => {
+		if (cardLength === undefined) setCardLength(props.cards.length)
+		else if (cardLength !== props.cards.length) {
+			// set focus to newly added card term
+			const cardContainer: HTMLElement = document.getElementById("cardContainer")?.lastChild
+				?.firstChild?.firstChild?.lastChild as HTMLElement
+			if (cardContainer) cardContainer.focus()
+			setCardLength(props.cards.length)
+		}
+	}, [props.cards])
 	return (
 		<div className={classes.cardInputGroupContainer}>
 			<div className={classes.termDefinitionContainer}>
 				<div className={classes.textAreaContainer}>
 					<div className={classes.cardActionBar}>
 						<Button
+							tabIndex={1}
 							onClick={() =>
 								setTerm(props.cards[props.idx].term + LATEX_DELIMITER + LATEX_DELIMITER)
 							}
@@ -105,11 +117,12 @@ function CardInputGroup(props: CardInputGroupProps) {
 						>
 							TeX
 						</Button>
-						<Button onClick={() => setPreview(!preview)} type="ghost">
+						<Button tabIndex={1} onClick={() => setPreview(!preview)} type="ghost">
 							Toggle preview
 						</Button>
 						<Tooltip placement="right" title="Delete card">
 							<Button
+								tabIndex={1}
 								danger
 								type="text"
 								shape="circle"
@@ -138,6 +151,7 @@ function CardInputGroup(props: CardInputGroupProps) {
 					<div className={classes.cardActionBar}>
 						<Tooltip placement="right" title="LaTeX formatting">
 							<Button
+								tabIndex={1}
 								onClick={() =>
 									setDefinition(
 										props.cards[props.idx].definition + LATEX_DELIMITER + LATEX_DELIMITER
@@ -162,6 +176,13 @@ function CardInputGroup(props: CardInputGroupProps) {
 							className={classes.textArea}
 							placeholder="Definition..."
 							autoSize={{ minRows: 2, maxRows: 6 }}
+							onKeyDown={(e: KeyboardEvent<HTMLTextAreaElement>) => {
+								const isLastCard = props.idx === props.cards.length - 1
+								if (e.key === "Tab" && !e.shiftKey && isLastCard) {
+									e.preventDefault()
+									props.setCards([...props.cards, { definition: "", term: "" }])
+								}
+							}}
 						/>
 					)}
 				</div>
@@ -284,7 +305,7 @@ export default function AddSet() {
 						placeholder="Set description"
 					/>
 				</div>
-				<div className={classes.setContainer}>
+				<div id="cardContainer" className={classes.setContainer}>
 					{cards.map((_, index) => (
 						<CardInputGroup
 							cards={cards}
