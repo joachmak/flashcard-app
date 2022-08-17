@@ -29,11 +29,16 @@ export async function createSet(title: string, description: string) {
 	}
 	return await fetch(process.env.REACT_APP_API_URL + "/learning/sets/", {
 		method: "POST",
-		headers: {
-			Accept: "application/json",
-			"Content-Type": "application/json",
-		},
+		headers: HEADERS,
 		body: JSON.stringify(set),
+	})
+}
+
+export async function patchSet(setId: number, newData: Partial<ISet>) {
+	return await fetch(process.env.REACT_APP_API_URL + "/learning/sets/" + setId + "/", {
+		method: "PATCH",
+		headers: HEADERS,
+		body: JSON.stringify(newData),
 	})
 }
 
@@ -41,10 +46,7 @@ export async function createSet(title: string, description: string) {
 export async function createManyCards(cards: ICard[]) {
 	return await fetch(process.env.REACT_APP_API_URL + "/learning/cards/", {
 		method: "POST",
-		headers: {
-			Accept: "application/json",
-			"Content-Type": "application/json",
-		},
+		headers: HEADERS,
 		body: JSON.stringify(cards),
 	})
 }
@@ -52,10 +54,23 @@ export async function createManyCards(cards: ICard[]) {
 export async function patchCard(cardId: number, newData: Partial<ICard>) {
 	return await fetch(process.env.REACT_APP_API_URL + "/learning/cards/" + cardId + "/", {
 		method: "PATCH",
-		headers: {
-			Accept: "application/json",
-			"Content-Type": "application/json",
-		},
+		headers: HEADERS,
 		body: JSON.stringify(newData),
+	})
+}
+
+export async function patchManyCards(cards: Partial<ICard>[]) {
+	return await fetch(process.env.REACT_APP_API_URL + "/learning/cards/patch_many/", {
+		method: "PATCH",
+		headers: HEADERS,
+		body: JSON.stringify(cards),
+	})
+}
+
+export async function deleteManyCards(cardIds: number[]) {
+	return await fetch(process.env.REACT_APP_API_URL + "/learning/cards/delete_many/", {
+		method: "DELETE",
+		headers: HEADERS,
+		body: JSON.stringify(cardIds),
 	})
 }

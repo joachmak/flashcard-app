@@ -6,22 +6,41 @@ import {
 	FolderAddOutlined,
 } from "@ant-design/icons"
 import { useNavigate } from "react-router-dom"
+import { useContext } from "react"
+import { AppContext } from "../App"
+import { IAppContext } from "../utils/interfaces"
+import { unassignSetContext } from "../utils/utils"
 
 const { SubMenu } = Menu
 
 export default function Navbar() {
 	const navigate = useNavigate()
+	const context = useContext<IAppContext | null>(AppContext)
 	return (
 		<>
 			<Menu mode="horizontal" defaultSelectedKeys={["home"]}>
-				<Menu.Item onClick={() => navigate("/")} key="home" icon={<HomeOutlined />}>
+				<Menu.Item
+					onClick={() => {
+						unassignSetContext(context)
+						navigate("/")
+					}}
+					key="home"
+					icon={<HomeOutlined />}
+				>
 					Home
 				</Menu.Item>
 				<SubMenu key="SubMenu" icon={<ContainerOutlined />} title="Folders/Sets">
 					<Menu.Item key="addFolder" icon={<FolderAddOutlined />}>
 						Add new folder
 					</Menu.Item>
-					<Menu.Item onClick={() => navigate("/add_set")} key="addSet" icon={<FileAddOutlined />}>
+					<Menu.Item
+						onClick={() => {
+							unassignSetContext(context)
+							navigate("/add_set")
+						}}
+						key="addSet"
+						icon={<FileAddOutlined />}
+					>
 						Add new set
 					</Menu.Item>
 				</SubMenu>

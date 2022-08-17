@@ -28,3 +28,25 @@ class CardViewset(mixins.ListModelMixin, mixins.CreateModelMixin, mixins.Destroy
         obj = get_object_or_404(Card, pk=pk)
         obj.delete()
         return Response(status=status.HTTP_200_OK)
+
+    @action(detail=False, methods=["delete"])
+    def delete_many(self, request):
+        if type(request.data) != list:
+            return Response(status=status.HTTP_400_BAD_REQUEST, data={"error": "Request data is not a list of IDs"})
+        self.queryset.filter(pk__in=request.data).delete()
+        return Response(status=status.HTTP_200_OK)
+
+    @action(detail=False, methods=["patch"])
+    def patch_many(self, request):
+        data = {  # we need to separate out the id from the data
+            i['id']: {k: v for k, v in i.items() if k != 'id'}
+            for i in request.data
+        }
+        for inst in self.queryset.filter(id__in=data.keys()):
+            serializer = CardSerializer(inst, data=data[inst.id], partial=True)
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+            data.pop(inst.id)
+        if len(data.keys()) > 0:
+            return Response(status=status.HTTP_400_BAD_REQUEST, data={"error": "Not all cards were updated"})
+        return Response(status=status.HTTP_200_OK)

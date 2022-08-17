@@ -2,7 +2,15 @@ import Input from "antd/lib/input"
 import TextArea from "antd/lib/input/TextArea"
 import { Content } from "antd/lib/layout/layout"
 import Title from "antd/lib/typography/Title"
-import { Dispatch, KeyboardEvent, SetStateAction, useEffect, useState } from "react"
+import {
+	Dispatch,
+	KeyboardEvent,
+	SetStateAction,
+	useContext,
+	useEffect,
+	useRef,
+	useState,
+} from "react"
 import { createUseStyles } from "react-jss"
 import {
 	DeleteOutlined,
@@ -11,14 +19,21 @@ import {
 	DownloadOutlined,
 	UploadOutlined,
 } from "@ant-design/icons"
-import { ICard } from "../utils/interfaces"
+import { IAppContext, ICard, ISet } from "../utils/interfaces"
 import { Button, notification, Tooltip, Upload } from "antd"
 import { useNavigate } from "react-router-dom"
-import { createManyCards, createSet } from "../utils/fetch"
+import {
+	createManyCards,
+	createSet,
+	deleteManyCards,
+	patchManyCards,
+	patchSet,
+} from "../utils/fetch"
 import type { UploadProps } from "antd"
 import { RcFile } from "antd/lib/upload"
 import { LATEX_DELIMITER } from "../utils/constants"
 import { parseLatex } from "../utils/utils"
+import { AppContext } from "../App"
 
 let useStyles = createUseStyles({
 	content: {
@@ -91,8 +106,10 @@ function CardInputGroup(props: CardInputGroupProps) {
 		props.cards[props.idx].definition = val
 		props.setCards([...props.cards])
 	}
-	const [preview, setPreview] = useState(false)
+	const [preview, setPreview] = useState<boolean>(false)
 	const [cardLength, setCardLength] = useState<number>()
+	const termRef = useRef<HTMLElement>(null)
+	const definitionRef = useRef<HTMLElement>(null)
 	useEffect(() => {
 		if (cardLength === undefined) setCardLength(props.cards.length)
 		else if (cardLength !== props.cards.length) {
@@ -102,7 +119,7 @@ function CardInputGroup(props: CardInputGroupProps) {
 			if (cardContainer) cardContainer.focus()
 			setCardLength(props.cards.length)
 		}
-	}, [props.cards])
+	}, [props.cards, cardLength])
 	return (
 		<div className={classes.cardInputGroupContainer}>
 			<div className={classes.termDefinitionContainer}>
@@ -110,9 +127,10 @@ function CardInputGroup(props: CardInputGroupProps) {
 					<div className={classes.cardActionBar}>
 						<Button
 							tabIndex={1}
-							onClick={() =>
+							onClick={() => {
 								setTerm(props.cards[props.idx].term + LATEX_DELIMITER + LATEX_DELIMITER)
-							}
+								termRef.current?.focus()
+							}}
 							type="ghost"
 						>
 							TeX
@@ -127,7 +145,10 @@ function CardInputGroup(props: CardInputGroupProps) {
 								type="text"
 								shape="circle"
 								icon={<DeleteOutlined />}
-								onClick={() => props.deleteFunc(props.idx)}
+								onClick={() => {
+									setPreview(false)
+									props.deleteFunc(props.idx)
+								}}
 							/>
 						</Tooltip>
 					</div>
@@ -144,6 +165,7 @@ function CardInputGroup(props: CardInputGroupProps) {
 							className={classes.textArea}
 							placeholder="Term..."
 							autoSize={{ minRows: 2, maxRows: 6 }}
+							ref={termRef}
 						/>
 					)}
 				</div>
@@ -152,11 +174,12 @@ function CardInputGroup(props: CardInputGroupProps) {
 						<Tooltip placement="right" title="LaTeX formatting">
 							<Button
 								tabIndex={1}
-								onClick={() =>
+								onClick={() => {
 									setDefinition(
 										props.cards[props.idx].definition + LATEX_DELIMITER + LATEX_DELIMITER
 									)
-								}
+									definitionRef.current?.focus()
+								}}
 								type="ghost"
 							>
 								TeX
@@ -183,6 +206,7 @@ function CardInputGroup(props: CardInputGroupProps) {
 									props.setCards([...props.cards, { definition: "", term: "" }])
 								}
 							}}
+							ref={definitionRef}
 						/>
 					)}
 				</div>
@@ -193,8 +217,10 @@ function CardInputGroup(props: CardInputGroupProps) {
 
 export default function AddSet() {
 	const classes = useStyles()
-	const [setName, setSetName] = useState("")
-	const [setDescription, setSetDescription] = useState("")
+	const [setTitle, setSetTitle] = useState<string>("")
+	const [setDescription, setSetDescription] = useState<string>("")
+	const [setBackup, setSetBackup] = useState<ISet>()
+	const [isEditing, setIsEditing] = useState<boolean>(false)
 	const [cards, setCards] = useState<ICard[]>([
 		{
 			term: "",
@@ -210,7 +236,8 @@ export default function AddSet() {
 		},
 	])
 	const navigate = useNavigate()
-	const [isLoading, setIsLoading] = useState(false)
+	const [isLoading, setIsLoading] = useState<boolean>(false)
+	const context = useContext<IAppContext | null>(AppContext)
 
 	const uploadProps: UploadProps = {
 		name: "file",
@@ -256,17 +283,22 @@ export default function AddSet() {
 		document.body.removeChild(element)
 	}
 
-	const createSetWithCards = () => {
-		if (setName === "") {
+	const isValid = (): boolean => {
+		if (setTitle === "") {
 			openErrNotification("You must enter a set name")
-			return
+			return false
 		}
 		if (setDescription === "") {
 			openErrNotification("You must enter a set description")
-			return
+			return false
 		}
+		return true
+	}
+
+	const createSetWithCards = () => {
+		if (!isValid()) return
 		setIsLoading(true)
-		createSet(setName, setDescription)
+		createSet(setTitle, setDescription)
 			.then((res) => res.json())
 			.then((res) => {
 				// only include non-empty cards
@@ -289,14 +321,69 @@ export default function AddSet() {
 			})
 	}
 
+	const updateSetWithCards = () => {
+		if (!isValid) return
+		setIsLoading(true)
+		let cardsWithId: Partial<ICard>[] = []
+		let cardsWithoutId: ICard[] = []
+		let idsToDelete: { [key: number]: boolean } = {} // use dictionary for constant lookup, val has no purpose
+		const setId: number | undefined = context?.set?.id
+
+		if (!setId) return
+		setBackup?.cards?.forEach((card) => {
+			// initially, include all cards that were in the set previously
+			if (card.id) idsToDelete[card.id] = true
+		})
+		cards.forEach((card) => {
+			if (card.definition === "" && card.term === "") return // skip empty cards
+			if (card.id) {
+				delete idsToDelete[card.id] // don't delete card with this id as it is still in the set
+				cardsWithId.push(card)
+				return
+			}
+			card.set = setId
+			card.score = 0
+			cardsWithoutId.push(card)
+		})
+
+		patchManyCards(cardsWithId)
+			.then(() => {
+				createManyCards(cardsWithoutId).then(() =>
+					deleteManyCards(
+						// create list of dict keys that were in backupSet but are not in the current set
+						Object.entries(idsToDelete).map((keyValPair) => parseInt(keyValPair[0]))
+					).then(() => {
+						patchSet(setId, { last_updated_date: new Date() }).then(() => navigate("/"))
+					})
+				)
+			})
+			.catch((err) => {
+				console.error(err)
+				openErrNotification("Something went wrong. Try saving again and start praying.")
+			})
+			.finally(() => {
+				setIsLoading(false)
+			})
+	}
+
+	useEffect(() => {
+		if (context?.set?.cards) {
+			setIsEditing(true)
+			setSetTitle(context.set.title)
+			setSetDescription(context.set.description)
+			setCards(context.set.cards)
+			setSetBackup(context.set)
+		}
+	}, [context])
+
 	return (
 		<div>
 			<Content className={classes.content}>
-				<Title level={2}>Add new set</Title>
+				<Title level={2}>{isEditing ? "Edit set" : "Add new set"}</Title>
 				<div className={classes.setTitleContainer}>
 					<Input
-						onChange={(e) => setSetName(e.currentTarget.value)}
-						value={setName}
+						onChange={(e) => setSetTitle(e.currentTarget.value)}
+						value={setTitle}
 						placeholder="Set name"
 					/>
 					<TextArea
@@ -328,7 +415,10 @@ export default function AddSet() {
 				</div>
 				<Button
 					icon={<SaveOutlined />}
-					onClick={createSetWithCards}
+					onClick={() => {
+						if (isEditing) updateSetWithCards()
+						else createSetWithCards()
+					}}
 					loading={isLoading}
 					type="primary"
 				>

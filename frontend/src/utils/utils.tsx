@@ -1,4 +1,5 @@
 import { LATEX_DELIMITER } from "./constants"
+import { IAppContext, ISet } from "./interfaces"
 
 export function incrementScore(oldScore: number): number {
 	let newScore = oldScore + 35
@@ -27,5 +28,15 @@ export function parseLatex(text: string): JSX.Element {
 			}
 		}
 	}
-	return <div dangerouslySetInnerHTML={{ __html: res }}></div>
+	return <pre dangerouslySetInnerHTML={{ __html: res }}></pre>
+}
+
+// CONTEXT MANAGEMENT
+
+export function unassignSetContext(context: IAppContext | null) {
+	if (context?.set) context.set = undefined
+}
+
+export function assignSetContext(context: IAppContext | null, set: ISet) {
+	if (context) context.set = set
 }

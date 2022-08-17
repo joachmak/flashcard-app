@@ -7,6 +7,7 @@ import { AppContext } from "../App"
 import SetCard from "../components/SetCard"
 import { getSets } from "../utils/fetch"
 import { ISet } from "../utils/interfaces"
+import { assignSetContext } from "../utils/utils"
 
 const useStyles = createUseStyles({
 	setContainer: {
@@ -31,18 +32,16 @@ export default function Home() {
 		<div style={{ padding: 5 }}>
 			<Title level={3}>Sets</Title>
 			<div className={classes.setContainer}>
-				{sets &&
-					context &&
-					sets.map((set) => (
-						<SetCard
-							key={set.id}
-							set={set}
-							onClick={() => {
-								context.setSet(set || [])
-								navigate("/view_set")
-							}}
-						/>
-					))}
+				{sets?.map((set) => (
+					<SetCard
+						key={set.id}
+						set={set}
+						onClick={() => {
+							assignSetContext(context, set)
+							navigate("/view_set")
+						}}
+					/>
+				))}
 				{sets?.length === 0 && (
 					<Typography>
 						There are no sets. <Link to={"/add_set"}>Create a new set</Link>
