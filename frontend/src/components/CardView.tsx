@@ -1,4 +1,4 @@
-import { Card } from "antd"
+import { Card, Text } from "@mantine/core"
 import { createUseStyles } from "react-jss"
 import { ICard } from "../utils/interfaces"
 import { parseLatex } from "../utils/utils"
@@ -13,30 +13,29 @@ const useStyles = createUseStyles({
 		flex: 1,
 		marginBottom: 30,
 	},
-	infotext: {
-		color: "rgba(0,0,0,0.5)",
-	},
 })
 
 export default function CardView(props: { card: ICard }) {
 	const classes = useStyles()
 	return (
-		<div>
-			<div className={classes.container}>
-				<Card className={classes.card}>
-					{parseLatex(props.card.term)}
-					<br />
-					<i className={classes.infotext}>Strength score: {props.card.score}</i>
-					<br />
-					<i className={classes.infotext}>
+		<div className={classes.container}>
+			<Card shadow="sm" className={classes.card} withBorder>
+				<Text>{parseLatex(props.card.term)}</Text>
+				<Text>
+					<i>Strength score: {props.card.score}</i>
+				</Text>
+				<Text>
+					<i>
 						Last practiced:{" "}
 						{props.card.last_practiced
 							? new Date(props.card.last_practiced).toLocaleString()
 							: "Never"}
 					</i>
-				</Card>
-				<Card className={classes.card}>{parseLatex(props.card.definition)}</Card>
-			</div>
+				</Text>
+			</Card>
+			<Card shadow="sm" className={classes.card} withBorder>
+				<Text>{parseLatex(props.card.definition)}</Text>
+			</Card>
 		</div>
 	)
 }

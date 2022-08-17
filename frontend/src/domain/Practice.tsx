@@ -1,34 +1,12 @@
-import { Button, Card, Typography } from "antd"
-import { Content } from "antd/lib/layout/layout"
+import { Button, Card, Container, Group, Text } from "@mantine/core"
 import { useContext, useEffect, useState } from "react"
-import { createUseStyles } from "react-jss"
 import { useNavigate } from "react-router-dom"
 import { AppContext } from "../App"
 import { patchCard } from "../utils/fetch"
 import { ICard } from "../utils/interfaces"
 import { decrementScore, incrementScore, parseLatex } from "../utils/utils"
 
-const useStyles = createUseStyles({
-	container: {
-		padding: 10,
-		display: "flex",
-		flexDirection: "column",
-	},
-	card: {
-		cursor: "pointer",
-	},
-	button: {
-		width: 200,
-		marginTop: 10,
-	},
-	buttonContainer: {
-		display: "flex",
-		gap: 10,
-	},
-})
-
 export default function Practice() {
-	const classes = useStyles()
 	const context = useContext(AppContext)
 	const [idx, setIdx] = useState(0)
 	const [cards, setCards] = useState<ICard[]>([])
@@ -43,6 +21,7 @@ export default function Practice() {
 	const incrementCardIdx = () => {
 		if (cards && idx < cards.length - 1) {
 			setIdx(idx + 1)
+			setIsFlipped(false)
 		}
 	}
 	const lastCard = cards && idx === cards.length - 1
@@ -79,7 +58,6 @@ export default function Practice() {
 			last_practiced: new Date(),
 		})
 			.then(() => {
-				setIsFlipped(false)
 				setIsLoading(false)
 				if (!lastCard) incrementCardIdx()
 				else navigate("/")
@@ -91,40 +69,30 @@ export default function Practice() {
 	}
 
 	return (
-		<Content className={classes.container}>
-			<Typography>(Click the card to flip it)</Typography>
+		<Container>
+			<Text>(Click the card to flip it)</Text>
 			{cards?.length > 0 && (
 				<>
-					<Card className={classes.card} onClick={() => setIsFlipped(!isFlipped)}>
+					<Card onClick={() => setIsFlipped(!isFlipped)}>
 						{cards?.length > 0 && isFlipped
 							? parseLatex(cards[idx].definition)
 							: parseLatex(cards[idx].term)}
 						{isFlipped && context && context.set && (
-							<div className={classes.buttonContainer}>
-								<Button
-									className={classes.button}
-									type="ghost"
-									loading={isLoading}
-									onClick={handlePracticeAgain}
-								>
+							<Group>
+								<Button variant="outline" loading={isLoading} onClick={handlePracticeAgain}>
 									Practice again
 								</Button>
-								<Button
-									className={classes.button}
-									type="primary"
-									loading={isLoading}
-									onClick={handleRememberedAnswer}
-								>
+								<Button variant="filled" loading={isLoading} onClick={handleRememberedAnswer}>
 									I remembered the answer
 								</Button>
-							</div>
+							</Group>
 						)}
 					</Card>
-					<Typography>
+					<Text>
 						Card {idx + 1} of {cards.length}
-					</Typography>
+					</Text>
 				</>
 			)}
-		</Content>
+		</Container>
 	)
 }

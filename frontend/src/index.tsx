@@ -4,12 +4,18 @@ import "./index.css"
 import { App } from "./App"
 import reportWebVitals from "./reportWebVitals"
 import { BrowserRouter } from "react-router-dom"
+import { MantineProvider } from "@mantine/core"
+import { NotificationsProvider } from "@mantine/notifications"
 
 ReactDOM.render(
 	<React.StrictMode>
-		<BrowserRouter>
-			<App />
-		</BrowserRouter>
+		<MantineProvider theme={{ colorScheme: "dark" }} withGlobalStyles withNormalizeCSS>
+			<NotificationsProvider position="top-center" limit={5}>
+				<BrowserRouter>
+					<App />
+				</BrowserRouter>
+			</NotificationsProvider>
+		</MantineProvider>
 	</React.StrictMode>,
 	document.getElementById("root")
 )

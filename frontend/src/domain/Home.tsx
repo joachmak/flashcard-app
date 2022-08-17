@@ -1,7 +1,5 @@
-import { Typography } from "antd"
-import Title from "antd/lib/typography/Title"
+import { Container, Grid, Text, Title } from "@mantine/core"
 import { useContext, useEffect, useState } from "react"
-import { createUseStyles } from "react-jss"
 import { Link, useNavigate } from "react-router-dom"
 import { AppContext } from "../App"
 import SetCard from "../components/SetCard"
@@ -9,45 +7,39 @@ import { getSets } from "../utils/fetch"
 import { ISet } from "../utils/interfaces"
 import { assignSetContext } from "../utils/utils"
 
-const useStyles = createUseStyles({
-	setContainer: {
-		display: "flex",
-		flexDirection: "row",
-		flexWrap: "wrap",
-		gap: 10,
-	},
-})
-
 export default function Home() {
 	const context = useContext(AppContext)
 	const navigate = useNavigate()
 	const [sets, setSets] = useState<ISet[]>()
-	const classes = useStyles()
 	useEffect(() => {
 		getSets()
 			.then((res) => setSets(res))
 			.catch((err) => console.log(err))
 	}, [])
 	return (
-		<div style={{ padding: 5 }}>
-			<Title level={3}>Sets</Title>
-			<div className={classes.setContainer}>
+		<Container>
+			<Title order={1} mb="sm">
+				Sets
+			</Title>
+			<Grid grow>
 				{sets?.map((set) => (
-					<SetCard
-						key={set.id}
-						set={set}
-						onClick={() => {
-							assignSetContext(context, set)
-							navigate("/view_set")
-						}}
-					/>
+					<Grid.Col span={6}>
+						<SetCard
+							key={set.id}
+							set={set}
+							onClick={() => {
+								assignSetContext(context, set)
+								navigate("/view_set")
+							}}
+						/>
+					</Grid.Col>
 				))}
 				{sets?.length === 0 && (
-					<Typography>
+					<Text>
 						There are no sets. <Link to={"/add_set"}>Create a new set</Link>
-					</Typography>
+					</Text>
 				)}
-			</div>
-		</div>
+			</Grid>
+		</Container>
 	)
 }

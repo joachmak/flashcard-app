@@ -1,50 +1,53 @@
-import { Menu } from "antd"
-import {
-	HomeOutlined,
-	ContainerOutlined,
-	FileAddOutlined,
-	FolderAddOutlined,
-} from "@ant-design/icons"
 import { useNavigate } from "react-router-dom"
 import { useContext } from "react"
 import { AppContext } from "../App"
 import { IAppContext } from "../utils/interfaces"
 import { unassignSetContext } from "../utils/utils"
+import { Container, Group, Text } from "@mantine/core"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { faHouse, faPlus } from "@fortawesome/free-solid-svg-icons"
+import { createUseStyles } from "react-jss"
 
-const { SubMenu } = Menu
+const useStyles = createUseStyles({
+	link: {
+		cursor: "pointer",
+	},
+})
 
 export default function Navbar() {
 	const navigate = useNavigate()
+	const classes = useStyles()
 	const context = useContext<IAppContext | null>(AppContext)
 	return (
-		<>
-			<Menu mode="horizontal" defaultSelectedKeys={["home"]}>
-				<Menu.Item
+		<Container>
+			<Group py="md" spacing={"lg"}>
+				<Text
+					className={classes.link}
+					component="a"
+					variant="link"
 					onClick={() => {
 						unassignSetContext(context)
 						navigate("/")
 					}}
-					key="home"
-					icon={<HomeOutlined />}
 				>
-					Home
-				</Menu.Item>
-				<SubMenu key="SubMenu" icon={<ContainerOutlined />} title="Folders/Sets">
-					<Menu.Item key="addFolder" icon={<FolderAddOutlined />}>
-						Add new folder
-					</Menu.Item>
-					<Menu.Item
-						onClick={() => {
-							unassignSetContext(context)
-							navigate("/add_set")
-						}}
-						key="addSet"
-						icon={<FileAddOutlined />}
-					>
-						Add new set
-					</Menu.Item>
-				</SubMenu>
-			</Menu>
-		</>
+					<Group spacing="xs">
+						<FontAwesomeIcon icon={faHouse} /> Home
+					</Group>
+				</Text>
+				<Text
+					className={classes.link}
+					component="a"
+					variant="link"
+					onClick={() => {
+						unassignSetContext(context)
+						navigate("/add_set")
+					}}
+				>
+					<Group spacing="xs">
+						<FontAwesomeIcon icon={faPlus} /> Add new set
+					</Group>
+				</Text>
+			</Group>
+		</Container>
 	)
 }

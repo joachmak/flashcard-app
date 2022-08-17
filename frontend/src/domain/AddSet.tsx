@@ -1,7 +1,3 @@
-import Input from "antd/lib/input"
-import TextArea from "antd/lib/input/TextArea"
-import { Content } from "antd/lib/layout/layout"
-import Title from "antd/lib/typography/Title"
 import {
 	Dispatch,
 	KeyboardEvent,
@@ -12,15 +8,7 @@ import {
 	useState,
 } from "react"
 import { createUseStyles } from "react-jss"
-import {
-	DeleteOutlined,
-	PlusOutlined,
-	SaveOutlined,
-	DownloadOutlined,
-	UploadOutlined,
-} from "@ant-design/icons"
 import { IAppContext, ICard, ISet } from "../utils/interfaces"
-import { Button, notification, Tooltip, Upload } from "antd"
 import { useNavigate } from "react-router-dom"
 import {
 	createManyCards,
@@ -29,16 +17,33 @@ import {
 	patchManyCards,
 	patchSet,
 } from "../utils/fetch"
-import type { UploadProps } from "antd"
-import { RcFile } from "antd/lib/upload"
 import { LATEX_DELIMITER } from "../utils/constants"
 import { parseLatex } from "../utils/utils"
 import { AppContext } from "../App"
+import {
+	ActionIcon,
+	Button,
+	Container,
+	FileButton,
+	Group,
+	Stack,
+	Textarea,
+	TextInput,
+	Title,
+	Tooltip,
+} from "@mantine/core"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import {
+	faDownload,
+	faPlus,
+	faSave,
+	faTrash,
+	faUpload,
+	faXmark,
+} from "@fortawesome/free-solid-svg-icons"
+import { showNotification } from "@mantine/notifications"
 
 let useStyles = createUseStyles({
-	content: {
-		padding: 20,
-	},
 	setTitleContainer: {
 		width: 300,
 		marginBottom: 20,
@@ -108,8 +113,8 @@ function CardInputGroup(props: CardInputGroupProps) {
 	}
 	const [preview, setPreview] = useState<boolean>(false)
 	const [cardLength, setCardLength] = useState<number>()
-	const termRef = useRef<HTMLElement>(null)
-	const definitionRef = useRef<HTMLElement>(null)
+	const termRef = useRef<HTMLTextAreaElement>(null)
+	const definitionRef = useRef<HTMLTextAreaElement>(null)
 	useEffect(() => {
 		if (cardLength === undefined) setCardLength(props.cards.length)
 		else if (cardLength !== props.cards.length) {
@@ -131,25 +136,24 @@ function CardInputGroup(props: CardInputGroupProps) {
 								setTerm(props.cards[props.idx].term + LATEX_DELIMITER + LATEX_DELIMITER)
 								termRef.current?.focus()
 							}}
-							type="ghost"
+							variant="subtle"
 						>
 							TeX
 						</Button>
-						<Button tabIndex={1} onClick={() => setPreview(!preview)} type="ghost">
+						<Button tabIndex={1} onClick={() => setPreview(!preview)} variant="subtle">
 							Toggle preview
 						</Button>
-						<Tooltip placement="right" title="Delete card">
-							<Button
+						<Tooltip label="Delete card">
+							<ActionIcon
+								color="red"
 								tabIndex={1}
-								danger
-								type="text"
-								shape="circle"
-								icon={<DeleteOutlined />}
 								onClick={() => {
 									setPreview(false)
 									props.deleteFunc(props.idx)
 								}}
-							/>
+							>
+								<FontAwesomeIcon icon={faTrash} />
+							</ActionIcon>
 						</Tooltip>
 					</div>
 					{preview ? (
@@ -159,19 +163,17 @@ function CardInputGroup(props: CardInputGroupProps) {
 							"No text. Toggle preview to start editing."
 						)
 					) : (
-						<TextArea
+						<Textarea
 							onChange={(e) => setTerm(e.target.value)}
 							value={props.cards[props.idx].term}
-							className={classes.textArea}
 							placeholder="Term..."
-							autoSize={{ minRows: 2, maxRows: 6 }}
 							ref={termRef}
 						/>
 					)}
 				</div>
 				<div className={classes.textAreaContainer}>
 					<div className={classes.cardActionBar}>
-						<Tooltip placement="right" title="LaTeX formatting">
+						<Tooltip label="LaTeX formatting">
 							<Button
 								tabIndex={1}
 								onClick={() => {
@@ -180,7 +182,7 @@ function CardInputGroup(props: CardInputGroupProps) {
 									)
 									definitionRef.current?.focus()
 								}}
-								type="ghost"
+								variant="subtle"
 							>
 								TeX
 							</Button>
@@ -193,12 +195,10 @@ function CardInputGroup(props: CardInputGroupProps) {
 							"No text. Toggle preview to start editing."
 						)
 					) : (
-						<TextArea
+						<Textarea
 							onChange={(e) => setDefinition(e.target.value)}
 							value={props.cards[props.idx].definition}
-							className={classes.textArea}
 							placeholder="Definition..."
-							autoSize={{ minRows: 2, maxRows: 6 }}
 							onKeyDown={(e: KeyboardEvent<HTMLTextAreaElement>) => {
 								const isLastCard = props.idx === props.cards.length - 1
 								if (e.key === "Tab" && !e.shiftKey && isLastCard) {
@@ -238,19 +238,7 @@ export default function AddSet() {
 	const navigate = useNavigate()
 	const [isLoading, setIsLoading] = useState<boolean>(false)
 	const context = useContext<IAppContext | null>(AppContext)
-
-	const uploadProps: UploadProps = {
-		name: "file",
-		accept: ".json",
-		showUploadList: false,
-		beforeUpload(file: RcFile) {
-			file.text().then((res) => {
-				// add file content to end of set
-				setCards(cards.concat(JSON.parse(res)))
-			})
-			return false // prevent POST request
-		},
-	}
+	const [file, setFile] = useState<File | null>(null)
 
 	const addCard = () => {
 		setCards((prevState) => [...prevState, { term: "", definition: "" }])
@@ -263,10 +251,12 @@ export default function AddSet() {
 		setCards(cardClone)
 	}
 	const openErrNotification = (message: string) => {
-		notification.error({
+		showNotification({
+			title: "Oops!",
 			message: message,
-			placement: "topLeft",
-			duration: 5,
+			color: "red",
+			autoClose: 5000,
+			icon: <FontAwesomeIcon icon={faXmark} />,
 		})
 	}
 	/**
@@ -376,69 +366,77 @@ export default function AddSet() {
 		}
 	}, [context])
 
+	useEffect(() => {
+		// on file change, append cards
+		if (file)
+			file.text().then((res) => {
+				setCards((c) => {
+					return c.concat(JSON.parse(res))
+				})
+			})
+	}, [file])
+
 	return (
-		<div>
-			<Content className={classes.content}>
-				<Title level={2}>{isEditing ? "Edit set" : "Add new set"}</Title>
-				<div className={classes.setTitleContainer}>
-					<Input
-						onChange={(e) => setSetTitle(e.currentTarget.value)}
-						value={setTitle}
-						placeholder="Set name"
-					/>
-					<TextArea
-						onChange={(e) => setSetDescription(e.currentTarget.value)}
-						value={setDescription}
-						placeholder="Set description"
-					/>
-				</div>
-				<div id="cardContainer" className={classes.setContainer}>
-					{cards.map((_, index) => (
-						<CardInputGroup
-							cards={cards}
-							setCards={setCards}
-							deleteFunc={deleteCard}
-							idx={index}
-							key={index}
-						/>
-					))}
-				</div>
-				<div className={classes.addCardBtn}>
-					<Tooltip title="Add card">
-						<Button
-							loading={isLoading}
-							type="text"
-							shape="circle"
-							icon={<PlusOutlined onClick={addCard} />}
-						/>
-					</Tooltip>
-				</div>
+		<Container pb="lg">
+			<Title order={2}>{isEditing ? "Edit set" : "Add new set"}</Title>
+			<Stack>
+				<TextInput
+					onChange={(e) => setSetTitle(e.currentTarget.value)}
+					value={setTitle}
+					label="Set name"
+					placeholder="The name of this set..."
+					variant="unstyled"
+				/>
+				<Textarea
+					onChange={(e) => setSetDescription(e.currentTarget.value)}
+					value={setDescription}
+					label="Set description"
+					placeholder="The description of this set..."
+					variant="unstyled"
+				/>
+			</Stack>
+			{cards.map((_, index) => (
+				<CardInputGroup
+					cards={cards}
+					setCards={setCards}
+					deleteFunc={deleteCard}
+					idx={index}
+					key={index}
+				/>
+			))}
+			<Group className={classes.addCardBtn}>
+				<ActionIcon onClick={addCard} radius="xl" variant="subtle" color="blue" mb="md">
+					<FontAwesomeIcon icon={faPlus} />
+				</ActionIcon>
+			</Group>
+			<Group>
 				<Button
-					icon={<SaveOutlined />}
+					leftIcon={<FontAwesomeIcon icon={faSave} />}
 					onClick={() => {
 						if (isEditing) updateSetWithCards()
 						else createSetWithCards()
 					}}
 					loading={isLoading}
-					type="primary"
+					variant="filled"
 				>
 					Save set
 				</Button>
 				<Button
-					icon={<DownloadOutlined />}
+					leftIcon={<FontAwesomeIcon icon={faDownload} />}
 					onClick={downloadJson}
 					loading={isLoading}
-					type="ghost"
-					style={{ marginLeft: 10 }}
+					variant="subtle"
 				>
 					Download cards
 				</Button>
-				<Upload {...uploadProps}>
-					<Button style={{ marginLeft: 10 }} icon={<UploadOutlined />}>
-						Upload cards
-					</Button>
-				</Upload>
-			</Content>
-		</div>
+				<FileButton onChange={setFile} accept=".json">
+					{(props) => (
+						<Button {...props} variant="subtle" leftIcon={<FontAwesomeIcon icon={faUpload} />}>
+							Upload cards
+						</Button>
+					)}
+				</FileButton>
+			</Group>
+		</Container>
 	)
 }
