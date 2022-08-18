@@ -23,10 +23,12 @@ import { AppContext } from "../App"
 import {
 	ActionIcon,
 	Button,
+	Chip,
 	Container,
 	FileButton,
 	Group,
 	Stack,
+	Text,
 	Textarea,
 	TextInput,
 	Title,
@@ -140,9 +142,9 @@ function CardInputGroup(props: CardInputGroupProps) {
 						>
 							TeX
 						</Button>
-						<Button tabIndex={1} onClick={() => setPreview(!preview)} variant="subtle">
-							Toggle preview
-						</Button>
+						<Chip tabIndex={1} checked={preview} onClick={() => setPreview(!preview)}>
+							Preview
+						</Chip>
 						<Tooltip label="Delete card">
 							<ActionIcon
 								color="red"
@@ -160,7 +162,7 @@ function CardInputGroup(props: CardInputGroupProps) {
 						props.cards[props.idx].term.length > 0 ? (
 							parseLatex(props.cards[props.idx].term)
 						) : (
-							"No text. Toggle preview to start editing."
+							<Text color="gray">No text. Toggle preview to start editing.</Text>
 						)
 					) : (
 						<Textarea
@@ -168,6 +170,9 @@ function CardInputGroup(props: CardInputGroupProps) {
 							value={props.cards[props.idx].term}
 							placeholder="Term..."
 							ref={termRef}
+							minRows={2}
+							maxRows={5}
+							autosize
 						/>
 					)}
 				</div>
@@ -192,7 +197,7 @@ function CardInputGroup(props: CardInputGroupProps) {
 						props.cards[props.idx].definition.length > 0 ? (
 							parseLatex(props.cards[props.idx].definition)
 						) : (
-							"No text. Toggle preview to start editing."
+							<Text color="gray">No text. Toggle preview to start editing.</Text>
 						)
 					) : (
 						<Textarea
@@ -207,6 +212,9 @@ function CardInputGroup(props: CardInputGroupProps) {
 								}
 							}}
 							ref={definitionRef}
+							autosize
+							minRows={2}
+							maxRows={5}
 						/>
 					)}
 				</div>

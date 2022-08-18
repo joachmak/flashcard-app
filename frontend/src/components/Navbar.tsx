@@ -12,6 +12,13 @@ const useStyles = createUseStyles({
 	link: {
 		cursor: "pointer",
 	},
+	logo: {
+		letterSpacing: "5px",
+		transition: "all 0.2s ease-in-out",
+		"&:hover": {
+			letterSpacing: "9px",
+		},
+	},
 })
 
 export default function Navbar() {
@@ -20,33 +27,38 @@ export default function Navbar() {
 	const context = useContext<IAppContext | null>(AppContext)
 	return (
 		<Container>
-			<Group py="md" spacing={"lg"}>
-				<Text
-					className={classes.link}
-					component="a"
-					variant="link"
-					onClick={() => {
-						unassignSetContext(context)
-						navigate("/")
-					}}
-				>
-					<Group spacing="xs">
-						<FontAwesomeIcon icon={faHouse} /> Home
-					</Group>
+			<Group py="md" position="apart">
+				<Text className={[classes.logo, classes.link].join(" ")} onClick={() => navigate("/")}>
+					SCI CARD
 				</Text>
-				<Text
-					className={classes.link}
-					component="a"
-					variant="link"
-					onClick={() => {
-						unassignSetContext(context)
-						navigate("/add_set")
-					}}
-				>
-					<Group spacing="xs">
-						<FontAwesomeIcon icon={faPlus} /> Add new set
-					</Group>
-				</Text>
+				<Group spacing="lg">
+					<Text
+						className={classes.link}
+						component="a"
+						variant="link"
+						onClick={() => {
+							unassignSetContext(context)
+							navigate("/")
+						}}
+					>
+						<Group spacing="xs">
+							<FontAwesomeIcon icon={faHouse} /> Home
+						</Group>
+					</Text>
+					<Text
+						className={classes.link}
+						component="a"
+						variant="link"
+						onClick={() => {
+							unassignSetContext(context)
+							navigate("/add_set")
+						}}
+					>
+						<Group spacing="xs">
+							<FontAwesomeIcon icon={faPlus} /> Add new set
+						</Group>
+					</Text>
+				</Group>
 			</Group>
 		</Container>
 	)
