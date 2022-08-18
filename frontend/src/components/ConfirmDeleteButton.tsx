@@ -1,11 +1,12 @@
 import { faTrash } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { Button, Group, Popover, Text } from "@mantine/core"
+import { Button, ButtonVariant, Group, Popover, Text } from "@mantine/core"
 import { useState } from "react"
 
 interface Props {
 	onDelete: () => void
 	deleteBtnText: string
+	buttonVariant?: ButtonVariant
 }
 
 export default function ConfirmDeleteButton(props: Props) {
@@ -24,7 +25,7 @@ export default function ConfirmDeleteButton(props: Props) {
 				<Button
 					onClick={() => setIsOpen(true)}
 					leftIcon={<FontAwesomeIcon icon={faTrash} />}
-					variant="outline"
+					variant={props.buttonVariant || "outline"}
 					color="red"
 				>
 					{props.deleteBtnText}

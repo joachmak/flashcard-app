@@ -11,6 +11,7 @@
 		"@mantine/core": "^5.1.6",
 		"@mantine/hooks": "^5.1.6",
 		"@mantine/notifications": "^5.1.6",
+		"@mantine/prism": "^5.1.6",
 		"@testing-library/jest-dom": "^5.16.1",
 		"@testing-library/react": "^12.1.2",
 		"@testing-library/user-event": "^13.5.0",

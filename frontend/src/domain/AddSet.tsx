@@ -1,6 +1,7 @@
 import {
 	Dispatch,
 	KeyboardEvent,
+	MutableRefObject,
 	SetStateAction,
 	useContext,
 	useEffect,
@@ -17,16 +18,19 @@ import {
 	patchManyCards,
 	patchSet,
 } from "../utils/fetch"
-import { LATEX_DELIMITER } from "../utils/constants"
-import { parseLatex } from "../utils/utils"
+import { CODE_DELIMITER, LATEX_DELIMITER, SUPPORTED_LANGUAGES } from "../utils/constants"
+import { parseCardText } from "../utils/utils"
 import { AppContext } from "../App"
 import {
 	ActionIcon,
 	Button,
 	Chip,
 	Container,
+	Divider,
 	FileButton,
 	Group,
+	Popover,
+	Select,
 	Stack,
 	Text,
 	Textarea,
@@ -36,14 +40,16 @@ import {
 } from "@mantine/core"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import {
+	faCode,
 	faDownload,
 	faPlus,
 	faSave,
-	faTrash,
 	faUpload,
 	faXmark,
 } from "@fortawesome/free-solid-svg-icons"
 import { showNotification } from "@mantine/notifications"
+import { OverflowTextPreview } from "../components/OverflowTextPreview"
+import ConfirmDeleteButton from "../components/ConfirmDeleteButton"
 
 let useStyles = createUseStyles({
 	setTitleContainer: {
@@ -103,6 +109,81 @@ interface CardInputGroupProps {
 	cards: ICard[]
 }
 
+interface FormatButtonProps {
+	text: string
+	setTextFunction: (txt: string) => void
+	textAreaRef: MutableRefObject<HTMLTextAreaElement | null>
+}
+
+function TexButton(props: FormatButtonProps) {
+	return (
+		<Tooltip label="Add LaTeX formatting">
+			<Button
+				tabIndex={1}
+				onClick={() => {
+					props.setTextFunction(props.text + LATEX_DELIMITER + " " + LATEX_DELIMITER)
+					props.textAreaRef.current?.focus()
+				}}
+				variant="outline"
+			>
+				TeX
+			</Button>
+		</Tooltip>
+	)
+}
+
+function CodeBlockButton(props: FormatButtonProps) {
+	const [isProgrammingPopoverOpen, setIsProgrammingPopoverOpen] = useState<boolean>(false)
+	const [programmingLanguage, setProgrammingLanguage] = useState<string | null>(null)
+	return (
+		<Popover
+			withArrow
+			position="top"
+			opened={isProgrammingPopoverOpen}
+			onChange={setIsProgrammingPopoverOpen}
+		>
+			<Popover.Target>
+				<Button
+					leftIcon={<FontAwesomeIcon icon={faCode} />}
+					tabIndex={1}
+					variant="outline"
+					onClick={() => setIsProgrammingPopoverOpen((o) => !o)}
+				>
+					Code block
+				</Button>
+			</Popover.Target>
+			<Popover.Dropdown>
+				<Group>
+					<Select
+						value={programmingLanguage}
+						onChange={setProgrammingLanguage}
+						placeholder="Coding language"
+						searchable
+						nothingFound="Not supported ):"
+						data={SUPPORTED_LANGUAGES}
+						variant="unstyled"
+					/>
+					<Tooltip label={"Add code block"}>
+						<Button
+							tabIndex={1}
+							disabled={!programmingLanguage}
+							onClick={() => {
+								props.setTextFunction(
+									props.text + CODE_DELIMITER + programmingLanguage + "\n\n" + CODE_DELIMITER
+								)
+								props.textAreaRef?.current?.focus()
+							}}
+							variant="subtle"
+						>
+							Add
+						</Button>
+					</Tooltip>
+				</Group>
+			</Popover.Dropdown>
+		</Popover>
+	)
+}
+
 function CardInputGroup(props: CardInputGroupProps) {
 	const classes = useStyles()
 	const setTerm = (val: string) => {
@@ -114,53 +195,30 @@ function CardInputGroup(props: CardInputGroupProps) {
 		props.setCards([...props.cards])
 	}
 	const [preview, setPreview] = useState<boolean>(false)
-	const [cardLength, setCardLength] = useState<number>()
 	const termRef = useRef<HTMLTextAreaElement>(null)
 	const definitionRef = useRef<HTMLTextAreaElement>(null)
-	useEffect(() => {
-		if (cardLength === undefined) setCardLength(props.cards.length)
-		else if (cardLength !== props.cards.length) {
-			// set focus to newly added card term
-			const cardContainer: HTMLElement = document.getElementById("cardContainer")?.lastChild
-				?.firstChild?.firstChild?.lastChild as HTMLElement
-			if (cardContainer) cardContainer.focus()
-			setCardLength(props.cards.length)
-		}
-	}, [props.cards, cardLength])
+
 	return (
 		<div className={classes.cardInputGroupContainer}>
-			<div className={classes.termDefinitionContainer}>
-				<div className={classes.textAreaContainer}>
-					<div className={classes.cardActionBar}>
-						<Button
-							tabIndex={1}
-							onClick={() => {
-								setTerm(props.cards[props.idx].term + LATEX_DELIMITER + LATEX_DELIMITER)
-								termRef.current?.focus()
-							}}
-							variant="subtle"
-						>
-							TeX
-						</Button>
-						<Chip tabIndex={1} checked={preview} onClick={() => setPreview(!preview)}>
-							Preview
-						</Chip>
-						<Tooltip label="Delete card">
-							<ActionIcon
-								color="red"
-								tabIndex={1}
-								onClick={() => {
-									setPreview(false)
-									props.deleteFunc(props.idx)
-								}}
-							>
-								<FontAwesomeIcon icon={faTrash} />
-							</ActionIcon>
-						</Tooltip>
-					</div>
+			<Group grow align="flex-start">
+				<Stack>
+					<Group>
+						<TexButton
+							text={props.cards[props.idx].term}
+							setTextFunction={setTerm}
+							textAreaRef={termRef}
+						/>
+						<CodeBlockButton
+							text={props.cards[props.idx].term}
+							setTextFunction={setTerm}
+							textAreaRef={termRef}
+						/>
+					</Group>
 					{preview ? (
 						props.cards[props.idx].term.length > 0 ? (
-							parseLatex(props.cards[props.idx].term)
+							<OverflowTextPreview>
+								{parseCardText(props.cards[props.idx].term)}
+							</OverflowTextPreview>
 						) : (
 							<Text color="gray">No text. Toggle preview to start editing.</Text>
 						)
@@ -175,27 +233,23 @@ function CardInputGroup(props: CardInputGroupProps) {
 							autosize
 						/>
 					)}
-				</div>
-				<div className={classes.textAreaContainer}>
-					<div className={classes.cardActionBar}>
-						<Tooltip label="LaTeX formatting">
-							<Button
-								tabIndex={1}
-								onClick={() => {
-									setDefinition(
-										props.cards[props.idx].definition + LATEX_DELIMITER + LATEX_DELIMITER
-									)
-									definitionRef.current?.focus()
-								}}
-								variant="subtle"
-							>
-								TeX
-							</Button>
-						</Tooltip>
-					</div>
+				</Stack>
+				<Stack>
+					<Group>
+						<TexButton
+							text={props.cards[props.idx].definition}
+							setTextFunction={setDefinition}
+							textAreaRef={definitionRef}
+						/>
+						<CodeBlockButton
+							text={props.cards[props.idx].definition}
+							setTextFunction={setDefinition}
+							textAreaRef={definitionRef}
+						/>
+					</Group>
 					{preview ? (
 						props.cards[props.idx].definition.length > 0 ? (
-							parseLatex(props.cards[props.idx].definition)
+							parseCardText(props.cards[props.idx].definition)
 						) : (
 							<Text color="gray">No text. Toggle preview to start editing.</Text>
 						)
@@ -217,8 +271,22 @@ function CardInputGroup(props: CardInputGroupProps) {
 							maxRows={5}
 						/>
 					)}
-				</div>
-			</div>
+				</Stack>
+			</Group>
+			<Group py="sm">
+				<ConfirmDeleteButton
+					onDelete={() => {
+						setPreview(false)
+						props.deleteFunc(props.idx)
+					}}
+					deleteBtnText={"Delete card"}
+					buttonVariant="subtle"
+				/>
+				<Chip tabIndex={1} checked={preview} onClick={() => setPreview(!preview)}>
+					Preview
+				</Chip>
+			</Group>
+			<Divider />
 		</div>
 	)
 }

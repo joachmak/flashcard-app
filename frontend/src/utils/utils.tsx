@@ -1,4 +1,5 @@
-import { LATEX_DELIMITER } from "./constants"
+import { Prism } from "@mantine/prism"
+import { CODE_DELIMITER, LATEX_DELIMITER } from "./constants"
 import { IAppContext, ISet } from "./interfaces"
 
 export function incrementScore(oldScore: number): number {
@@ -13,22 +14,45 @@ export function decrementScore(oldScore: number): number {
 	return newScore
 }
 
-export function parseLatex(text: string): JSX.Element {
-	let res = ""
+export function parseCardText(text: string): JSX.Element {
 	const textArr = text.split(LATEX_DELIMITER)
 	const katex = require("katex")
-	for (let i = 0; i < textArr.length; i++) {
-		if (i % 2 === 0) res += textArr[i]
-		else {
-			try {
-				res += katex.renderToString(textArr[i])
-			} catch (error) {
-				// don't render anything on error
-				continue
-			}
-		}
-	}
-	return <pre dangerouslySetInnerHTML={{ __html: res }}></pre>
+	return (
+		<pre>
+			{textArr.map((txt1, i) => {
+				if (i % 2 === 0) {
+					const codeArr = txt1.split(CODE_DELIMITER)
+					return (
+						<span key={txt1}>
+							{codeArr.map((txt2, j) => {
+								if (j % 2 === 0)
+									return (
+										<span key={"" + i + j} style={{ margin: 0 }}>
+											{txt2}
+										</span>
+									)
+								const language = txt2.split("\n")[0]
+								return (
+									// @ts-ignore
+									<Prism key={"" + i + j} noCopy withLineNumbers language={language}>
+										{txt2.slice(language.length, txt2.length)}
+									</Prism>
+								)
+							})}
+						</span>
+					)
+				} else {
+					return (
+						<span
+							key={i}
+							style={{ margin: 0 }}
+							dangerouslySetInnerHTML={{ __html: katex.renderToString(txt1) }}
+						></span>
+					)
+				}
+			})}
+		</pre>
+	)
 }
 
 // CONTEXT MANAGEMENT

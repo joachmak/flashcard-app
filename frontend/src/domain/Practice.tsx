@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom"
 import { AppContext } from "../App"
 import { patchCard } from "../utils/fetch"
 import { ICard } from "../utils/interfaces"
-import { decrementScore, incrementScore, parseLatex } from "../utils/utils"
+import { decrementScore, incrementScore, parseCardText } from "../utils/utils"
 
 export default function Practice() {
 	const context = useContext(AppContext)
@@ -75,8 +75,8 @@ export default function Practice() {
 				<>
 					<Card onClick={() => setIsFlipped(!isFlipped)}>
 						{cards?.length > 0 && isFlipped
-							? parseLatex(cards[idx].definition)
-							: parseLatex(cards[idx].term)}
+							? parseCardText(cards[idx].definition)
+							: parseCardText(cards[idx].term)}
 						{isFlipped && context && context.set && (
 							<Group>
 								<Button variant="outline" loading={isLoading} onClick={handlePracticeAgain}>

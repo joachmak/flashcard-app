@@ -1,8 +1,8 @@
-import { Card, Group, ScrollArea, Text } from "@mantine/core"
-import { useEffect, useRef, useState } from "react"
+import { Card, Group, Text } from "@mantine/core"
 import { createUseStyles } from "react-jss"
 import { ICard } from "../utils/interfaces"
-import { parseLatex } from "../utils/utils"
+import { parseCardText } from "../utils/utils"
+import { OverflowTextPreview } from "./OverflowTextPreview"
 
 const useStyles = createUseStyles({
 	container: {
@@ -18,18 +18,10 @@ const useStyles = createUseStyles({
 
 export default function CardView(props: { card: ICard }) {
 	const classes = useStyles()
-	const textRef = useRef<HTMLDivElement>(null)
-	const [height, setHeight] = useState<number>(0)
-	useEffect(() => {
-		if (textRef.current) setHeight(textRef.current.getBoundingClientRect().height)
-	}, [textRef])
-	console.log(height)
 	return (
 		<Group className={classes.container}>
 			<Card shadow="sm" className={classes.card} withBorder>
-				<ScrollArea style={{ height: height > 150 ? 150 : "" }} type="auto" offsetScrollbars>
-					<Text ref={textRef}>{parseLatex(props.card.term)}</Text>
-				</ScrollArea>
+				<OverflowTextPreview>{parseCardText(props.card.term)}</OverflowTextPreview>
 				<Text>
 					<i>Strength score: {props.card.score}</i>
 				</Text>
@@ -43,7 +35,7 @@ export default function CardView(props: { card: ICard }) {
 				</Text>
 			</Card>
 			<Card shadow="sm" className={classes.card} withBorder>
-				<Text>{parseLatex(props.card.definition)}</Text>
+				<Text>{parseCardText(props.card.definition)}</Text>
 			</Card>
 		</Group>
 	)
