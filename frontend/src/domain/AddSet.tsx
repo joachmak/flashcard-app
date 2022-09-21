@@ -1,55 +1,31 @@
-import {
-	Dispatch,
-	KeyboardEvent,
-	MutableRefObject,
-	SetStateAction,
-	useContext,
-	useEffect,
-	useRef,
-	useState,
-} from "react"
+import { useEffect, useState } from "react"
 import { createUseStyles } from "react-jss"
-import { IAppContext, ICard, ISet } from "../utils/interfaces"
-import { useNavigate } from "react-router-dom"
+import { ICard, ISet } from "../utils/interfaces"
+import { useNavigate, useParams } from "react-router-dom"
 import {
 	createManyCards,
 	createSet,
 	deleteManyCards,
+	getSet,
+	patchImage,
 	patchManyCards,
 	patchSet,
 } from "../utils/fetch"
-import { CODE_DELIMITER, LATEX_DELIMITER, SUPPORTED_LANGUAGES } from "../utils/constants"
-import { parseCardText } from "../utils/utils"
-import { AppContext } from "../App"
 import {
 	ActionIcon,
 	Button,
-	Chip,
 	Container,
-	Divider,
 	FileButton,
 	Group,
-	Popover,
-	Select,
 	Stack,
-	Text,
 	Textarea,
 	TextInput,
 	Title,
-	Tooltip,
 } from "@mantine/core"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import {
-	faCode,
-	faDownload,
-	faPlus,
-	faSave,
-	faUpload,
-	faXmark,
-} from "@fortawesome/free-solid-svg-icons"
+import { faDownload, faPlus, faSave, faUpload, faXmark } from "@fortawesome/free-solid-svg-icons"
 import { showNotification } from "@mantine/notifications"
-import { OverflowTextPreview } from "../components/OverflowTextPreview"
-import ConfirmDeleteButton from "../components/ConfirmDeleteButton"
+import CardInputGroup from "../components/CardInputGroup"
 
 let useStyles = createUseStyles({
 	setTitleContainer: {
@@ -62,10 +38,6 @@ let useStyles = createUseStyles({
 	setContainer: {
 		display: "flex",
 		flexDirection: "column",
-	},
-	cardInputGroupContainer: {
-		marginBottom: 20,
-		padding: "5px 5px 5px 0",
 	},
 	termDefinitionContainer: {
 		display: "flex",
@@ -102,195 +74,6 @@ let useStyles = createUseStyles({
 	},
 })
 
-interface CardInputGroupProps {
-	deleteFunc: (idx: number) => void
-	idx: number
-	setCards: Dispatch<SetStateAction<ICard[]>>
-	cards: ICard[]
-}
-
-interface FormatButtonProps {
-	text: string
-	setTextFunction: (txt: string) => void
-	textAreaRef: MutableRefObject<HTMLTextAreaElement | null>
-}
-
-function TexButton(props: FormatButtonProps) {
-	return (
-		<Tooltip label="Add LaTeX formatting">
-			<Button
-				tabIndex={1}
-				onClick={() => {
-					props.setTextFunction(props.text + LATEX_DELIMITER + " " + LATEX_DELIMITER)
-					props.textAreaRef.current?.focus()
-				}}
-				variant="outline"
-			>
-				TeX
-			</Button>
-		</Tooltip>
-	)
-}
-
-function CodeBlockButton(props: FormatButtonProps) {
-	const [isProgrammingPopoverOpen, setIsProgrammingPopoverOpen] = useState<boolean>(false)
-	const [programmingLanguage, setProgrammingLanguage] = useState<string | null>(null)
-	return (
-		<Popover
-			withArrow
-			position="top"
-			opened={isProgrammingPopoverOpen}
-			onChange={setIsProgrammingPopoverOpen}
-		>
-			<Popover.Target>
-				<Button
-					leftIcon={<FontAwesomeIcon icon={faCode} />}
-					tabIndex={1}
-					variant="outline"
-					onClick={() => setIsProgrammingPopoverOpen((o) => !o)}
-				>
-					Code block
-				</Button>
-			</Popover.Target>
-			<Popover.Dropdown>
-				<Group>
-					<Select
-						value={programmingLanguage}
-						onChange={setProgrammingLanguage}
-						placeholder="Coding language"
-						searchable
-						nothingFound="Not supported ):"
-						data={SUPPORTED_LANGUAGES}
-						variant="unstyled"
-					/>
-					<Tooltip label={"Add code block"}>
-						<Button
-							tabIndex={1}
-							disabled={!programmingLanguage}
-							onClick={() => {
-								props.setTextFunction(
-									props.text + CODE_DELIMITER + programmingLanguage + "\n\n" + CODE_DELIMITER
-								)
-								props.textAreaRef?.current?.focus()
-							}}
-							variant="subtle"
-						>
-							Add
-						</Button>
-					</Tooltip>
-				</Group>
-			</Popover.Dropdown>
-		</Popover>
-	)
-}
-
-function CardInputGroup(props: CardInputGroupProps) {
-	const classes = useStyles()
-	const setTerm = (val: string) => {
-		props.cards[props.idx].term = val
-		props.setCards([...props.cards])
-	}
-	const setDefinition = (val: string) => {
-		props.cards[props.idx].definition = val
-		props.setCards([...props.cards])
-	}
-	const [preview, setPreview] = useState<boolean>(false)
-	const termRef = useRef<HTMLTextAreaElement>(null)
-	const definitionRef = useRef<HTMLTextAreaElement>(null)
-
-	return (
-		<div className={classes.cardInputGroupContainer}>
-			<Group grow align="flex-start">
-				<Stack>
-					<Group>
-						<TexButton
-							text={props.cards[props.idx].term}
-							setTextFunction={setTerm}
-							textAreaRef={termRef}
-						/>
-						<CodeBlockButton
-							text={props.cards[props.idx].term}
-							setTextFunction={setTerm}
-							textAreaRef={termRef}
-						/>
-					</Group>
-					{preview ? (
-						props.cards[props.idx].term.length > 0 ? (
-							<OverflowTextPreview>
-								{parseCardText(props.cards[props.idx].term)}
-							</OverflowTextPreview>
-						) : (
-							<Text color="gray">No text. Toggle preview to start editing.</Text>
-						)
-					) : (
-						<Textarea
-							onChange={(e) => setTerm(e.target.value)}
-							value={props.cards[props.idx].term}
-							placeholder="Term..."
-							ref={termRef}
-							minRows={2}
-							maxRows={5}
-							autosize
-						/>
-					)}
-				</Stack>
-				<Stack>
-					<Group>
-						<TexButton
-							text={props.cards[props.idx].definition}
-							setTextFunction={setDefinition}
-							textAreaRef={definitionRef}
-						/>
-						<CodeBlockButton
-							text={props.cards[props.idx].definition}
-							setTextFunction={setDefinition}
-							textAreaRef={definitionRef}
-						/>
-					</Group>
-					{preview ? (
-						props.cards[props.idx].definition.length > 0 ? (
-							parseCardText(props.cards[props.idx].definition)
-						) : (
-							<Text color="gray">No text. Toggle preview to start editing.</Text>
-						)
-					) : (
-						<Textarea
-							onChange={(e) => setDefinition(e.target.value)}
-							value={props.cards[props.idx].definition}
-							placeholder="Definition..."
-							onKeyDown={(e: KeyboardEvent<HTMLTextAreaElement>) => {
-								const isLastCard = props.idx === props.cards.length - 1
-								if (e.key === "Tab" && !e.shiftKey && isLastCard) {
-									e.preventDefault()
-									props.setCards([...props.cards, { definition: "", term: "" }])
-								}
-							}}
-							ref={definitionRef}
-							autosize
-							minRows={2}
-							maxRows={5}
-						/>
-					)}
-				</Stack>
-			</Group>
-			<Group py="sm">
-				<ConfirmDeleteButton
-					onDelete={() => {
-						setPreview(false)
-						props.deleteFunc(props.idx)
-					}}
-					deleteBtnText={"Delete card"}
-					buttonVariant="subtle"
-				/>
-				<Chip tabIndex={1} checked={preview} onClick={() => setPreview(!preview)}>
-					Preview
-				</Chip>
-			</Group>
-			<Divider />
-		</div>
-	)
-}
-
 export default function AddSet() {
 	const classes = useStyles()
 	const [setTitle, setSetTitle] = useState<string>("")
@@ -313,8 +96,21 @@ export default function AddSet() {
 	])
 	const navigate = useNavigate()
 	const [isLoading, setIsLoading] = useState<boolean>(false)
-	const context = useContext<IAppContext | null>(AppContext)
 	const [file, setFile] = useState<File | null>(null)
+	const params = useParams()
+
+	useEffect(() => {
+		if (params.id) {
+			getSet(parseInt(params.id)).then((res: ISet) => {
+				setCards(res.cards || [])
+				setSetTitle(res.title)
+				setSetDescription(res.description)
+				setSetBackup(res)
+				setIsEditing(true)
+				console.log(res.cards)
+			})
+		}
+	}, [params])
 
 	const addCard = () => {
 		setCards((prevState) => [...prevState, { term: "", definition: "" }])
@@ -325,6 +121,14 @@ export default function AddSet() {
 		})
 		cardClone.splice(idx, 1)
 		setCards(cardClone)
+	}
+	const updateCard = (idx: number, card: ICard) => {
+		if (cards[idx]) {
+			setCards((cards) => {
+				cards[idx] = card
+				return [...cards]
+			})
+		}
 	}
 	const openErrNotification = (message: string) => {
 		showNotification({
@@ -375,7 +179,28 @@ export default function AddSet() {
 					return card
 				})
 				createManyCards(nonEmptyCards)
-					.then(() => navigate("/"))
+					.then((res) => res.json())
+					.then((res: ICard[]) => {
+						// for each card, for each image, set image's card to the appropriate card id
+						console.log(res)
+						console.log(nonEmptyCards)
+						res.forEach((card: ICard, idx: number) => {
+							if (nonEmptyCards[idx].images_definition) {
+								nonEmptyCards[idx].images_definition!.forEach((image) => {
+									console.log("patching term image with id " + image.id)
+									image.card = card.id
+									console.log(image)
+									patchImage({ id: image.id, card: card.id })
+								})
+							}
+							if (nonEmptyCards[idx].images_term) {
+								nonEmptyCards[idx].images_term!.forEach((image) => {
+									patchImage({ id: image.id, card: card.id })
+								})
+							}
+						})
+						navigate("/")
+					})
 					.catch((err) => {
 						throw err
 					})
@@ -393,7 +218,7 @@ export default function AddSet() {
 		let cardsWithId: Partial<ICard>[] = []
 		let cardsWithoutId: ICard[] = []
 		let idsToDelete: { [key: number]: boolean } = {} // use dictionary for constant lookup, val has no purpose
-		const setId: number | undefined = context?.set?.id
+		const setId: number | undefined = setBackup?.id
 
 		if (!setId) return
 		setBackup?.cards?.forEach((card) => {
@@ -433,16 +258,6 @@ export default function AddSet() {
 	}
 
 	useEffect(() => {
-		if (context?.set?.cards) {
-			setIsEditing(true)
-			setSetTitle(context.set.title)
-			setSetDescription(context.set.description)
-			setCards(context.set.cards)
-			setSetBackup(context.set)
-		}
-	}, [context])
-
-	useEffect(() => {
 		// on file change, append cards
 		if (file)
 			file.text().then((res) => {
@@ -471,12 +286,14 @@ export default function AddSet() {
 					variant="unstyled"
 				/>
 			</Stack>
-			{cards.map((_, index) => (
+			{cards.map((card, index) => (
 				<CardInputGroup
-					cards={cards}
-					setCards={setCards}
+					card={card}
 					deleteFunc={deleteCard}
 					idx={index}
+					totalCardCount={cards.length}
+					addCard={addCard}
+					updateCard={updateCard}
 					key={index}
 				/>
 			))}

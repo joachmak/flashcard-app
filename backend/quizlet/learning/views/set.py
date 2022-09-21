@@ -5,7 +5,7 @@ from learning.serializers.set import SetSerializer
 from rest_framework.response import Response
 
 
-class SetViewset(mixins.ListModelMixin, mixins.CreateModelMixin, mixins.DestroyModelMixin, mixins.UpdateModelMixin,
+class SetViewset(mixins.ListModelMixin, mixins.RetrieveModelMixin, mixins.CreateModelMixin, mixins.DestroyModelMixin, mixins.UpdateModelMixin,
                  viewsets.GenericViewSet):
     queryset = Set.objects.all()
     serializer_class = SetSerializer
@@ -14,6 +14,12 @@ class SetViewset(mixins.ListModelMixin, mixins.CreateModelMixin, mixins.DestroyM
         """ Return all sets of the current user """
         set_data = self.queryset.all()
         serializer = SetSerializer(set_data, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def retrieve(self, request, pk=None, *args, **kwargs):
+        """ Return all sets of the current user """
+        set = get_object_or_404(Set, pk=pk)
+        serializer = SetSerializer(set, many=False)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def create(self, request, *args, **kwargs):

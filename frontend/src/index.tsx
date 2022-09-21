@@ -8,15 +8,13 @@ import { MantineProvider } from "@mantine/core"
 import { NotificationsProvider } from "@mantine/notifications"
 
 ReactDOM.render(
-	<React.StrictMode>
-		<MantineProvider theme={{ colorScheme: "dark" }} withGlobalStyles withNormalizeCSS>
-			<NotificationsProvider position="top-center" limit={5}>
-				<BrowserRouter>
-					<App />
-				</BrowserRouter>
-			</NotificationsProvider>
-		</MantineProvider>
-	</React.StrictMode>,
+	<MantineProvider theme={{ colorScheme: "dark" }} withGlobalStyles withNormalizeCSS>
+		<NotificationsProvider position="top-center" limit={5}>
+			<BrowserRouter>
+				<App />
+			</BrowserRouter>
+		</NotificationsProvider>
+	</MantineProvider>,
 	document.getElementById("root")
 )
 

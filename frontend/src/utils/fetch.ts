@@ -1,4 +1,4 @@
-import { ICard, ISet } from "./interfaces"
+import { ICard, IImage, ISet } from "./interfaces"
 
 const HEADERS = {
 	Accept: "application/json",
@@ -15,6 +15,13 @@ export async function deleteSet(id: number) {
 
 export async function getSets(): Promise<ISet[]> {
 	return fetch(process.env.REACT_APP_API_URL + "/learning/sets", {
+		method: "GET",
+		headers: HEADERS,
+	}).then((res) => res.json())
+}
+
+export async function getSet(id: number): Promise<ISet> {
+	return fetch(process.env.REACT_APP_API_URL + "/learning/sets/" + id, {
 		method: "GET",
 		headers: HEADERS,
 	}).then((res) => res.json())
@@ -72,5 +79,36 @@ export async function deleteManyCards(cardIds: number[]) {
 		method: "DELETE",
 		headers: HEADERS,
 		body: JSON.stringify(cardIds),
+	})
+}
+
+// IMAGES
+export async function createImage(image: IImage) {
+	let form_data: FormData = new FormData()
+	form_data.append("image", image.image)
+	form_data.append("is_term_image", image.is_term_image.toString())
+	if (image.card) form_data.append("card", image.card.toString())
+	console.log(form_data)
+	return await fetch(process.env.REACT_APP_API_URL + "/learning/images/", {
+		method: "POST",
+		body: form_data,
+	})
+}
+
+export async function patchImage(image: Partial<IImage>) {
+	if (!image.id) return // TODO: Throw error and add proper error handling
+	let form_data: FormData = new FormData()
+	if (image.image) form_data.append("image", image.image)
+	if (image.is_term_image) form_data.append("is_term_image", image.is_term_image.toString())
+	if (image.card) form_data.append("card", image.card.toString())
+	return await fetch(process.env.REACT_APP_API_URL + "/learning/images/" + image.id + "/", {
+		method: "PATCH",
+		body: form_data,
+	})
+}
+
+export async function deleteImage(idx: number) {
+	return await fetch(process.env.REACT_APP_API_URL + "/learning/images/" + idx + "/", {
+		method: "DELETE",
 	})
 }

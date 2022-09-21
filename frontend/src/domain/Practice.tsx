@@ -1,45 +1,49 @@
 import { Button, Card, Container, Group, Text } from "@mantine/core"
-import { useContext, useEffect, useState } from "react"
-import { useNavigate } from "react-router-dom"
-import { AppContext } from "../App"
-import { patchCard } from "../utils/fetch"
-import { ICard } from "../utils/interfaces"
+import { useEffect, useState } from "react"
+import { Params, useNavigate, useParams } from "react-router-dom"
+import { getSet, patchCard } from "../utils/fetch"
+import { ISet } from "../utils/interfaces"
 import { decrementScore, incrementScore, parseCardText } from "../utils/utils"
 
 export default function Practice() {
-	const context = useContext(AppContext)
 	const [idx, setIdx] = useState(0)
-	const [cards, setCards] = useState<ICard[]>([])
+	const [set, setSet] = useState<ISet>()
 	const [isFlipped, setIsFlipped] = useState(false)
 	const [isLoading, setIsLoading] = useState(false)
+	const params: Readonly<Params<string>> = useParams()
 
 	useEffect(() => {
-		if (context && context.set && context.set.cards) {
-			setCards(context.set.cards)
-		}
-	}, [context])
+		if (params.id) getSet(parseInt(params.id)).then((res: ISet) => setSet(res))
+	}, [params.id])
+
 	const incrementCardIdx = () => {
-		if (cards && idx < cards.length - 1) {
+		if (set?.cards && idx < set.cards.length - 1) {
 			setIdx(idx + 1)
 			setIsFlipped(false)
 		}
 	}
-	const lastCard = cards && idx === cards.length - 1
+
+	const lastCard = set?.cards && idx === set.cards.length - 1
 	const navigate = useNavigate()
 
 	const handlePracticeAgain = () => {
-		if (cards === undefined || cards[idx].id === undefined || cards[idx].score === undefined) return
+		if (
+			set?.cards === undefined ||
+			set?.cards[idx].id === undefined ||
+			set?.cards[idx].score === undefined
+		)
+			return
 		setIsLoading(true)
-		patchCard(cards[idx].id!, {
-			score: decrementScore(cards[idx].score!),
+		patchCard(set.cards[idx].id!, {
+			score: decrementScore(set.cards[idx].score!),
 			last_practiced: new Date(),
 		})
 			.then(() => {
 				// move card to end of set
-				let setCards = context!.set!.cards!
-				let set = context!.set!
-				set.cards!.push(setCards.splice(idx, 1)[0])
-				context!.setSet(set)
+				if (!set || !set.cards) return
+				let setCards = set.cards
+				set.cards.push(setCards.splice(idx, 1)[0])
+				setSet(set)
 				setIsFlipped(false)
 				setIsLoading(false)
 			})
@@ -50,11 +54,15 @@ export default function Practice() {
 	}
 
 	const handleRememberedAnswer = () => {
-		if (cards === undefined || cards[idx].id === undefined || !cards[idx].score === undefined)
+		if (
+			set?.cards === undefined ||
+			set?.cards[idx].id === undefined ||
+			set?.cards[idx].score === undefined
+		)
 			return
 		setIsLoading(true)
-		patchCard(cards[idx].id!, {
-			score: incrementScore(cards[idx].score!),
+		patchCard(set.cards[idx].id!, {
+			score: incrementScore(set.cards[idx].score!),
 			last_practiced: new Date(),
 		})
 			.then(() => {
@@ -71,13 +79,13 @@ export default function Practice() {
 	return (
 		<Container>
 			<Text>(Click the card to flip it)</Text>
-			{cards?.length > 0 && (
+			{set?.cards && set.cards.length > 0 && (
 				<>
 					<Card onClick={() => setIsFlipped(!isFlipped)}>
-						{cards?.length > 0 && isFlipped
-							? parseCardText(cards[idx].definition)
-							: parseCardText(cards[idx].term)}
-						{isFlipped && context && context.set && (
+						{set.cards.length > 0 && isFlipped
+							? parseCardText(set.cards[idx].definition)
+							: parseCardText(set.cards[idx].term)}
+						{isFlipped && set && (
 							<Group>
 								<Button variant="outline" loading={isLoading} onClick={handlePracticeAgain}>
 									Practice again
@@ -89,7 +97,7 @@ export default function Practice() {
 						)}
 					</Card>
 					<Text>
-						Card {idx + 1} of {cards.length}
+						Card {idx + 1} of {set.cards.length}
 					</Text>
 				</>
 			)}

@@ -7,6 +7,7 @@ import { createContext, useState } from "react"
 import { IAppContext, ISet } from "./utils/interfaces"
 import CardOverview from "./domain/CardOverview"
 import Practice from "./domain/Practice"
+import PageNotFound from "./domain/PageNotFound"
 
 export const AppContext = createContext<IAppContext | null>({
 	set: undefined,
@@ -23,8 +24,10 @@ function App() {
 				<Routes>
 					<Route path="/" element={<Home />} />
 					<Route path="/add_set" element={<AddSet />} />
-					<Route path="/view_set" element={<CardOverview />} />
-					<Route path="/practice" element={<Practice />} />
+					<Route path="/edit_set/:id" element={<AddSet />} />
+					<Route path="/view_set/:id" element={<CardOverview />} />
+					<Route path="/practice/:id" element={<Practice />} />
+					<Route path="*" element={<PageNotFound />} />
 				</Routes>
 			</AppContext.Provider>
 		</div>

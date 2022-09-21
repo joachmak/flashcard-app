@@ -24,6 +24,15 @@ export interface ICard {
 	score?: number
 	set?: number
 	last_practiced?: Date
+	images_term?: IImage[]
+	images_definition?: IImage[]
+}
+
+export interface IImage {
+	id?: number
+	image: File | string
+	is_term_image: boolean
+	card?: number // id of the card that the image belongs to
 }
 
 export interface UserAuth {
