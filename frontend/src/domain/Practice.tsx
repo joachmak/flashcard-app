@@ -4,6 +4,23 @@ import { Params, useNavigate, useParams } from "react-router-dom"
 import { getSet, patchCard } from "../utils/fetch"
 import { ISet } from "../utils/interfaces"
 import { decrementScore, incrementScore, parseCardText } from "../utils/utils"
+import {createUseStyles} from "react-jss";
+
+const useStyles = createUseStyles({
+	cardContainer: {
+		"& ul, & ol": {
+			margin: "-15px 0",
+			lineHeight: 0.5,
+		},
+		"& li": {
+			margin: 0,
+			padding: 0,
+		},
+		"& p": {
+			margin: 0,
+		}
+	}
+})
 
 export default function Practice() {
 	const [idx, setIdx] = useState(0)
@@ -11,6 +28,7 @@ export default function Practice() {
 	const [isFlipped, setIsFlipped] = useState(false)
 	const [isLoading, setIsLoading] = useState(false)
 	const params: Readonly<Params<string>> = useParams()
+	const classes = useStyles()
 
 	useEffect(() => {
 		if (params.id) getSet(parseInt(params.id)).then((res: ISet) => setSet(res))
@@ -81,7 +99,7 @@ export default function Practice() {
 			<Text>(Click the card to flip it)</Text>
 			{set?.cards && set.cards.length > 0 && (
 				<>
-					<Card onClick={() => setIsFlipped(!isFlipped)}>
+					<Card className={classes.cardContainer} onClick={() => setIsFlipped(!isFlipped)}>
 						{set.cards.length > 0 && isFlipped
 							? parseCardText(set.cards[idx].definition)
 							: parseCardText(set.cards[idx].term)}

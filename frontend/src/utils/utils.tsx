@@ -1,6 +1,7 @@
 import { Prism } from "@mantine/prism"
 import { CODE_DELIMITER, LATEX_DELIMITER } from "./constants"
 import { IAppContext, ISet } from "./interfaces"
+import { marked } from 'marked';
 
 export function incrementScore(oldScore: number): number {
 	let newScore = oldScore + 35
@@ -28,7 +29,9 @@ export function parseCardText(text: string): JSX.Element {
 								if (j % 2 === 0)
 									return (
 										<span key={"" + i + j} style={{ margin: 0 }}>
-											{txt2}
+											<div
+												dangerouslySetInnerHTML={{__html: marked.parse(txt2)}}
+											/>
 										</span>
 									)
 								const language = txt2.split("\n")[0]

@@ -111,7 +111,7 @@ export default function CardInputGroup(props: Props) {
 					</Group>
 					{preview ? (
 						props.card.definition.length > 0 ? (
-							parseCardText(props.card.definition)
+							<OverflowTextPreview>{parseCardText(props.card.definition)}</OverflowTextPreview>
 						) : (
 							<Text color="gray">No text. Toggle preview to start editing.</Text>
 						)

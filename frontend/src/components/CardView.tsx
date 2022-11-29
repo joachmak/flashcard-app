@@ -50,7 +50,7 @@ export default function CardView(props: { card: ICard }) {
 			</Stack>
 			<Stack className={classes.cardContainer}>
 				<Card className={classes.card} shadow="sm" withBorder>
-					<Text>{parseCardText(props.card.definition)}</Text>
+					<OverflowTextPreview>{parseCardText(props.card.definition)}</OverflowTextPreview>
 				</Card>
 				<ImagePreview
 					images={props.card.images_definition || []}
