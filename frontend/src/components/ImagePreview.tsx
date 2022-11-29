@@ -1,7 +1,7 @@
 import { faAt, faTrash } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { ActionIcon, Group, Image, Modal, SimpleGrid, Stack, Tooltip } from "@mantine/core"
-import { Dispatch, SetStateAction, useState } from "react"
+import { useState } from "react"
 import { createUseStyles } from "react-jss"
 import { Carousel } from "react-responsive-carousel"
 import "react-responsive-carousel/lib/styles/carousel.min.css"

@@ -1,7 +1,7 @@
 import { faImages } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { FileInput, FileInputProps } from "@mantine/core"
-import { Dispatch, SetStateAction, useEffect, useState } from "react"
+import { useEffect, useState } from "react"
 import { createUseStyles } from "react-jss"
 import { createImage } from "../utils/fetch"
 import { IImage } from "../utils/interfaces"

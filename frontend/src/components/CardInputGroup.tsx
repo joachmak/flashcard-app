@@ -1,5 +1,5 @@
 import { Chip, Divider, Group, Stack, Textarea, Text } from "@mantine/core"
-import { Dispatch, SetStateAction, useEffect, useRef, useState, KeyboardEvent } from "react"
+import { useRef, useState, KeyboardEvent } from "react"
 import { createUseStyles } from "react-jss"
 import { ICard, IImage } from "../utils/interfaces"
 import { parseCardText } from "../utils/utils"
